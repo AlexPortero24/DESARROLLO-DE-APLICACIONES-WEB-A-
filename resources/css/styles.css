@@ -81,4 +81,15 @@ body {
 }
 
 
-
+/* Seccion del formulario REGISTRO DE PRODUCTOS  cambiar colores */
+.mi-fondo-personalizado {
+    background-color: #77ace9; /* Puedes cambiar este código por el color que prefieras */
+}
+/* Estilo para la caja del Total de pedidos Registarados  */
+.estilo-pedidos-personalizado {
+    background-color: #e7e988; /* Color de fondo */
+    color: #000000;            /* Color del texto (blanco) */
+    padding: 10px 20px;        /* Espaciado interno */
+    border-radius: 10px;       /* Bordes redondeados */
+    display: inline-block;     /* Para que la caja se ajuste al texto */
+}
