@@ -162,16 +162,29 @@
         <form id="formularioPedido" class="row g-3 mb-4">
             <div class="col-md-4">
                 <input type="text" id="nombreCliente" class="form-control" placeholder="Tu Nombre" required>
+                <div id="errorNombre" class="invalid-feedback">El nombre debe tener al menos 3 caracteres.</div> <!-- semana 6 -->
             </div>
+
             <div class="col-md-4">
-                <input type="text" id="especiePez" class="form-control" placeholder="Especie del pez o Producto" required>
+                <select id="especiePez" class="form-control">
+                <option value="">Selecciona una especie...</option>
+                <option value="Guppys">Guppys</option>
+                <option value="Betta">Betta</option>
+                <option value="Goldfish">Goldfish</option>
+                <option value="Molly">Molly</option>
+                </select>
+            <div id="errorPez" class="invalid-feedback">Por favor, selecciona una especie de la lista.</div>
             </div>
+
             <div class="col-md-2">
                 <input type="number" id="cantidad" class="form-control" placeholder="Cant." required>
+                <div id="errorCantidad" class="invalid-feedback">La cantidad debe ser mayor a 0.</div> <!-- semana 6 -->
             </div>
+
             <div class="col-md-2">
                 <button type="submit" class="btn btn-info w-100 fw-bold">Agregar</button>
             </div>
+
         </form>
 
         <div id="listaPedidos" class="row g-3"></div>

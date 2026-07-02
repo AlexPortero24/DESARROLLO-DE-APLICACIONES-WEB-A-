@@ -4,17 +4,91 @@ const listaPedidos = document.getElementById('listaPedidos');// Captura el conte
 const contadorElemento = document.getElementById('contadorPedidos');// Captura el elemento donde se mostrará el contador de pedidos
 let total = 0;
 
+// 1.1 Validaciones dinámicas en tiempo real semana 6
+document.getElementById('nombreCliente').addEventListener('input', function() {
+    if (this.value.trim().length >= 3) {
+        this.classList.remove('is-invalid'); // Quita el rojo si ya está correcto
+    }
+});
+// Validación para la especie del pez
+document.getElementById('especiePez').addEventListener('input', function() {
+    if (this.value.trim().length > 0) {
+        this.classList.remove('is-invalid');
+    }
+});
+
+// Validación para la cantidad
+document.getElementById('cantidad').addEventListener('input', function() {
+    if (this.value > 0) {
+        this.classList.remove('is-invalid');
+    }
+}); // Fin de validaciones dinámicas semana 6
+
+// SEMANA 6 - VALIDACIONES DE AVISO INMEDIATO (Si escribe algo mal)
+// ==========================================================
+document.getElementById('nombreCliente').addEventListener('input', function() {
+    if (this.value.trim().length > 0 && this.value.trim().length < 3) {
+        this.classList.add('is-invalid'); // Pone rojo si empieza a escribir menos de 3
+    }
+});
+
+document.getElementById('especiePez').addEventListener('input', function() {
+    if (this.value.trim().length === 0) {
+        this.classList.add('is-invalid'); // Pone rojo si borra todo
+    }
+});
+
+document.getElementById('cantidad').addEventListener('input', function() {
+    if (this.value !== "" && this.value <= 0) {
+        this.classList.add('is-invalid'); // Pone rojo si escribe un número menor a 1
+    }
+});
+// ==========================================================
+
+
 // 2. Escuchar el evento submit
 formulario.addEventListener('submit', function(e) {
     e.preventDefault(); // Impide que la página se recargue
 
     // Obtener valores de los inputs
-    const nombre = document.getElementById('nombreCliente').value;// Captura el valor del nombre del cliente
-    const pez = document.getElementById('especiePez').value;// Captura el valor de la especie del pez
-    const cantidad = document.getElementById('cantidad').value;// Captura el valor de la cantidad
+    // 1. CAPTURAR LOS ELEMENTOS (sin el .value al final)
+    const inputNombre = document.getElementById('nombreCliente');// Captura el input del nombre del cliente
+    const inputPez = document.getElementById('especiePez'); // Captura el input de la especie del pez
+    const inputCantidad = document.getElementById('cantidad'); // Captura el input de la cantidad de peces
+     
+// semana 6 inicio 
+let esValido = true; // Variable de control
+    // Validar nombre
+    if (inputNombre.value.trim().length < 3) {
+        inputNombre.classList.add('is-invalid');
+        esValido = false;
+    } else {
+        inputNombre.classList.remove('is-invalid');
+    }
+
+    // Validar pez
+    if (inputPez.value.trim() === "") {
+        inputPez.classList.add('is-invalid');
+        esValido = false;
+    } else {
+        inputPez.classList.remove('is-invalid');
+    }
+
+    // Validar cantidad
+    if (inputCantidad.value <= 0 || inputCantidad.value === "") {
+        inputCantidad.classList.add('is-invalid');
+        esValido = false;
+    } else {
+        inputCantidad.classList.remove('is-invalid');
+    }
+
+    // Si algo falló, detenemos la ejecución aquí
+    if (!esValido) return;
+//semnana 6 fin
+
 
     // Validación básica
-    if (nombre === "" || pez === "" || cantidad === "") {
+    if (inputNombre.value === "" || inputPez.value === "" || inputCantidad.value === "") {
         alert("Por favor, completa todos los campos");
         return;
     }// Validación de cantidad
@@ -25,8 +99,8 @@ formulario.addEventListener('submit', function(e) {
     divCol.innerHTML = `
         <div class="card h-100 border-0 shadow">
             <div class="card-body">
-                <h5 class="card-title text-dark">${pez}</h5>
-                <p class="card-text text-muted">Cliente: ${nombre}<br>Cantidad: ${cantidad}</p> <!-- Comentario: Mostrar información del pedido -->
+                <h5 class="card-title text-dark">${inputPez.value}</h5>
+                <p class="card-text text-muted">Cliente: ${inputNombre.value}<br>Cantidad: ${inputCantidad.value}</p> <!-- Comentario: Mostrar información del pedido -->
                 <button class="btn btn-danger btn-sm">Eliminar Pedido</button>      <!-- Botón para eliminar el pedido -->  
             </div>
         </div>  <!-- Comentario: Se crea una tarjeta con la información del pedido y un botón para eliminarlo -->
@@ -44,6 +118,7 @@ formulario.addEventListener('submit', function(e) {
     total++;
     contadorElemento.innerText = total;// Actualizar el contador de pedidos
 
-    // Limpiar formulario
-    formulario.reset();// Limpiar los campos del formulario después de enviar
+    // Limpiar formulario y quitar clases de validación
+    formulario.reset();// Limpiar los campos del formulario
+    document.querySelectorAll('.form-control').forEach(el => el.classList.remove('is-invalid'));// Quitar la clase de validación de todos los inputs
 });// Escuchar el evento submit del formulario y manejar la creación de pedidos
