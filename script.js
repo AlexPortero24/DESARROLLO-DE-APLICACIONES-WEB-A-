@@ -1,3 +1,72 @@
+// ==========================================================
+// SEMANA 7 - DATOS Y RENDERIZADO DE PRODUCTOS
+// ==========================================================
+
+// 1. DATOS DE PRODUCTOS (Arreglo de objetos)
+const productosCatalogo = [
+    {
+        id: 1,
+        nombre: 'Peces y Plantas',
+        icono: 'bi-water',
+        items: [
+            'Peces exóticos de agua dulce (Betas, Guppys, Goldfish y Ángeles).',
+            'Sustratos nutritivos y plantas naturales para acuarios plantados.'
+        ]
+    },
+    {
+        id: 2,
+        nombre: 'Equipamiento e Iluminación',
+        icono: 'bi-gear-fill',
+        items: [
+            'Peceras de vidrio de alta resistencia y acuarios a la medida.',
+            'Sistemas de filtración avanzados (cascada, internos y canister).',
+            'Bombas de oxígeno, aireadores y motores de flujo.',
+            'Sistemas de iluminación LED de bajo consumo energético.'
+        ]
+    },
+    {
+        id: 3,
+        nombre: 'Nutrición y Asesoría',
+        icono: 'bi-heart-pulse-fill',
+        items: [
+            'Alimentos premium en hojuelas, pellets y suplementos.',
+            'Accesorios ecológicos y troncos naturales.',
+            'Asesoría personalizada en el ciclado del agua y control de parámetros.'
+        ]
+    }
+];
+
+// 2. FUNCIÓN PARA RENDERIZAR PRODUCTOS
+function renderizarProductos() {
+    const contenedor = document.getElementById('contenedor-productos');
+    
+    // Limpiar el contenedor
+    contenedor.innerHTML = '';
+    
+    // Recorrer el arreglo de productos y crear tarjetas
+    productosCatalogo.forEach(producto => {
+        const col = document.createElement('div');
+        col.className = 'col';
+        col.innerHTML = `
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-body p-4">
+                    <div class="mb-3 text-info fs-1">
+                        <i class="bi ${producto.icono}"></i>
+                    </div>
+                    <h4 class="card-title fw-bold text-dark mb-3">${producto.nombre}</h4>
+                    <ul class="card-text text-secondary small ps-3">
+                        ${producto.items.map(item => `<li>${item}</li>`).join('')}
+                    </ul>
+                </div>
+            </div>
+        `;
+        contenedor.appendChild(col);
+    });
+}
+
+// ==========================================================
+// SEMANA 6 - VALIDACIONES Y GESTIÓN DE PEDIDOS 
+// ==========================================================
 // 1. Capturar elementos del DOM
 const formulario = document.getElementById('formularioPedido');// Captura el formulario
 const listaPedidos = document.getElementById('listaPedidos');// Captura el contenedor donde se mostrarán los pedidos
@@ -122,3 +191,15 @@ let esValido = true; // Variable de control
     formulario.reset();// Limpiar los campos del formulario
     document.querySelectorAll('.form-control').forEach(el => el.classList.remove('is-invalid'));// Quitar la clase de validación de todos los inputs
 });// Escuchar el evento submit del formulario y manejar la creación de pedidos
+
+// ==========================================================
+// INICIALIZAR CONTENIDO AL CARGAR LA PÁGINA
+// ==========================================================
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Renderizar productos del catálogo
+    renderizarProductos();
+    
+    console.log('✅ Productos renderizados dinámicamente desde JavaScript');
+    console.log('📦 Total de productos:', productosCatalogo.length);
+});

@@ -5,14 +5,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
 
+<!-- CSS Propio -->
     <link rel="stylesheet" href="resources/css/styles.css">
 
-
+<!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
 </head>
 
 
 <body> 
+    <!-- 
+  ============================================================
+  PLANTILLA BASE (base.html)
+  Esta sección contiene la estructura principal
+  que se repetirá en todas las páginas del sitio
+  ============================================================
+-->
+
+<!-- 
+  ============================================================
+  BLOQUE: HEADER (partials/header.html)
+  ============================================================
+-->
+
 <!-- ===== ENCABEZADO (HEADER) ===== -->
 <header class="bg-dark text-white py-4 text-center shadow-sm w-100 m-0">
         <div class="container">
@@ -20,6 +35,12 @@
             <p class="lead text-light opacity-75 mb-0">Sistema de Gestión de Ventas de Acuariofilia en Ecuador</p>
         </div>
     </header>
+
+<!-- 
+  ============================================================
+  BLOQUE: NAVEGACIÓN (partials/nav.html)
+  ============================================================
+-->
 
  <!-- ===== MENÚ DE NAVEGACIÓN (NAV) ===== -->
 <nav class="navbar navbar-expand-lg navbar-dark sticky-top shadow-sm">
@@ -43,6 +64,12 @@
     </div>
 </nav>
 
+<!-- 
+  ============================================================
+  BLOQUE: CONTENIDO PRINCIPAL (pages/index.html)
+  Extiende de base.html
+  ============================================================
+-->
 <!-- ===== CONTENIDO PRINCIPAL (MAIN) ===== -->
 <main>
    <section id="inicio" class="text-center text-black d-flex align-items-center justify-content-center" style="min-height: 70px;">
@@ -98,61 +125,17 @@
             <p class="text-muted fs-5">Descubre nuestro catálogo especializado para el cuidado y mantenimiento de tus ecosistemas acuáticos.</p>
         </div>
 
-        <!-- Rejilla de Tarjetas (Cards) de Bootstrap -->
-        <div class="row row-cols-1 row-cols-md-3 g-4">
-            
-            <!-- Tarjeta 1: Vida Acuática -->
-            <div class="col">
-                <div class="card h-100 shadow-sm border-0">
-                    <div class="card-body p-4">
-                        <div class="mb-3 text-info fs-1">
-                            <i class="bi bi-water"></i> 
-                        </div>
-                        <h4 class="card-title fw-bold text-dark mb-3">Peces y Plantas</h4>
-                        <ul class="card-text text-secondary small ps-3">
-                            <li>Peces exóticos de agua dulce (Betas, Guppys, Goldfish y Ángeles).</li>
-                            <li>Sustratos nutritivos y plantas naturales para acuarios plantados.</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
+        <!-- 
+  ============================================================
+  CONTENEDOR DE PRODUCTOS (RENDERIZADO DINÁMICO DESDE JS)
+  ============================================================
+-->
+<div id="contenedor-productos" class="row row-cols-1 row-cols-md-3 g-4">
+    <!-- Las tarjetas se generarán automáticamente desde script.js -->
+</div>
+<!-- ===== FIN DEL CONTENEDOR DE PRODUCTOS ===== -->
 
-            <!-- Tarjeta 2: Equipamiento Premium -->
-            <div class="col">
-                <div class="card h-100 shadow-sm border-0">
-                    <div class="card-body p-4">
-                        <div class="mb-3 text-info fs-1">
-                            <i class="bi bi-gear-fill"></i>
-                        </div>
-                        <h4 class="card-title fw-bold text-dark mb-3">Equipamiento e Iluminación</h4>
-                        <ul class="card-text text-secondary small ps-3">
-                            <li>Peceras de vidrio de alta resistencia y acuarios a la medida.</li>
-                            <li>Sistemas de filtración avanzados (cascada, internos y canister).</li>
-                            <li>Bombas de oxígeno, aireadores y motores de flujo.</li>
-                            <li>Sistemas de iluminación LED de bajo consumo energético.</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Tarjeta 3: Mantenimiento y Cuidado -->
-            <div class="col">
-                <div class="card h-100 shadow-sm border-0">
-                    <div class="card-body p-4">
-                        <div class="mb-3 text-info fs-1">
-                            <i class="bi bi-heart-pulse-fill"></i>
-                        </div>
-                        <h4 class="card-title fw-bold text-dark mb-3">Nutrición y Asesoría</h4>
-                        <ul class="card-text text-secondary small ps-3">
-                            <li>Alimentos premium en hojuelas, pellets y suplementos.</li>
-                            <li>Accesorios ecológicos y troncos naturales.</li>
-                            <li>Asesoría personalizada en el ciclado del agua y control de parámetros.</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-        </div> <!-- Fin de la rejilla de tarjetas -->
+    </div>
 
 <!-- Inicio del FORMULARIO para el Registro de Pedidos -->
  <section id="registro-pedidos" class="py-5 mi-fondo-personalizado text-white">
@@ -343,7 +326,11 @@
 </aside>
 </main>
 
-
+<!-- 
+  ============================================================
+  BLOQUE: FOOTER (partials/footer.html)
+  ============================================================
+-->
 
 <!-- ===== PIE DE PÁGINA (FOOTER) ===== -->
 <footer class="bg-dark text-white py-5 mt-5">
