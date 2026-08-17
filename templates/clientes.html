@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}Clientes - Acuario Vaporeon{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h2 class="text-center mb-4">Gestión de Clientes</h2>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Email</th>
+                <th>Teléfono</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td>1</td><td>Ana Martínez</td><td>ana@email.com</td><td>0987654321</td></tr>
+            <tr><td>2</td><td>Carlos López</td><td>carlos@email.com</td><td>0987123456</td></tr>
+            <tr><td>3</td><td>María Gómez</td><td>maria@email.com</td><td>0987567890</td></tr>
+        </tbody>
+    </table>
+</div>
+{% endblock %}

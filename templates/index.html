@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+
+{% block title %}Inicio - Acuario Vaporeon{% endblock %}
+
+{% block content %}
+
+<!-- INICIO -->
+<section class="text-center text-black d-flex align-items-center justify-content-center" style="min-height: 70px;">
+    <div class="container py-5">
+        <h2 class="display-4 fw-bold mb-3">Inicio</h2>
+        <p class="fs-5 mx-auto mb-0" style="max-width: 600px;">
+            Bienvenido a Acuario Vaporeon, tu destino para todo lo relacionado con acuarios y vida acuática.
+        </p>
+        <a href="#guia-cuidado" class="btn btn-guia-personalizado fw-bold text-uppercase px-4 py-2">
+            Guía de Cuidado de Acuarios
+        </a>
+    </div>
+</section>
+
+<!-- QUIÉNES SOMOS -->
+<section class="py-5 bg-white">
+    <div class="container py-4">
+        <div class="row align-items-center">
+            <div class="col-md-6 mb-4 mb-md-0">
+                <h2 class="display-5 fw-bold text-dark mb-3" style="border-bottom: 3px solid #1D9E75; display: inline-block; padding-bottom: 10px;">
+                    Quiénes Somos
+                </h2>
+                <p class="text-secondary lh-base fs-5 mb-0" style="text-align: justify;">
+                    Acuario Vaporeon es un emprendimiento ecuatoriano apasionado por el fascinante mundo de la acuariofilia.
+                </p>
+                <p class="text-secondary lh-base fs-5 mt-3 mb-0" style="text-align: justify;">
+                    Nos dedicamos a la comercialización de peces exóticos de agua dulce y todos los productos necesarios para tu acuario.
+                </p>
+            </div>
+            <div class="col-md-6 text-center">
+                <div class="p-3 bg-light rounded shadow-sm d-inline-block">
+                    <img src="{{ url_for('static', filename='img/logoAcuarioVaporeon.png') }}" alt="Logo" class="img-fluid rounded" style="max-height: 380px; width: auto; object-fit: contain;">
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- SERVICIOS O PRODUCTOS -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold text-dark">Servicios o Productos</h2>
+            <p class="text-muted fs-5">Descubre nuestro catálogo especializado.</p>
+        </div>
+        <div id="contenedor-productos" class="row row-cols-1 row-cols-md-3 g-4">
+            <!-- Productos desde JS -->
+        </div>
+    </div>
+</section>
+
+<!-- REGISTRO DE PEDIDOS -->
+<section class="py-5" style="background-color: #1D9E75; color: white;">
+    <div class="container">
+        <h2 class="text-center mb-4">Registro de Pedidos de Peces</h2>
+        <form id="formularioPedido" class="row g-3 mb-4">
+            <div class="col-md-4">
+                <input type="text" id="nombreCliente" class="form-control" placeholder="Tu Nombre" required>
+            </div>
+            <div class="col-md-4">
+                <select id="especiePez" class="form-control">
+                    <option value="">Selecciona una especie...</option>
+                    <option value="Guppys">Guppys</option>
+                    <option value="Betta">Betta</option>
+                    <option value="Goldfish">Goldfish</option>
+                    <option value="Molly">Molly</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <input type="number" id="cantidad" class="form-control" placeholder="Cant." required>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-info w-100 fw-bold">Agregar</button>
+            </div>
+        </form>
+        <div id="listaPedidos" class="row g-3"></div>
+        <div class="mt-4 text-center">
+            <h4>Total: <span id="contadorPedidos">0</span></h4>
+        </div>
+    </div>
+</section>
+
+<!-- GUÍA -->
+<div class="container mt-5 pt-4 border-top">
+    <h3 id="guia-cuidado" class="fw-bold text-dark text-center mb-3">Guía de Cuidado de Acuarios</h3>
+    <div class="d-flex justify-content-center mb-4">
+        <div class="ratio ratio-16x9 shadow rounded" style="max-width: 560px;">
+            <iframe src="https://www.youtube.com/embed/SpDArIVw0yQ?si=ceNmPBtuu9xX8HHC" title="YouTube" allowfullscreen></iframe>
+        </div>
+    </div>
+    <aside class="bg-white p-4 rounded shadow-sm border-start border-4 border-info">
+        <h4 class="fw-bold text-dark mb-3">Recomendaciones</h4>
+        <p><strong>Ciclado del Agua:</strong> Prepara el agua por 15 días antes de introducir peces.</p>
+        <p class="mb-0"><strong>Evita la sobrealimentación:</strong> Alimenta solo lo que consuman en 2 minutos.</p>
+    </aside>
+</div>
+
+<!-- CONTACTO -->
+<section class="py-5 bg-white">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold text-dark">Contacto</h2>
+            <p class="text-muted fs-5">Contáctanos para más información.</p>
+        </div>
+        <div class="row g-5">
+            <div class="col-lg-5">
+                <h4 class="fw-bold text-dark mb-4">Información</h4>
+                <ul class="list-unstyled mb-4">
+                    <li class="mb-3 fs-5"><strong>Correo:</strong> acuariovaporeon@gmail.com</li>
+                    <li class="mb-3 fs-5"><strong>Teléfono:</strong> 0963054123</li>
+                    <li class="mb-3 fs-5"><strong>Dirección:</strong> Guayllabamba, Quito</li>
+                </ul>
+                <div class="mb-4">
+                    <a href="https://www.facebook.com/people/Acuario-Vaporeon/100070788132257/" target="_blank" class="btn btn-primary fw-bold">
+                        Facebook
+                    </a>
+                </div>
+                <div>
+                    <div class="ratio ratio-4x3 shadow-sm rounded">
+                        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3989.8152264078353!2d-78.36087492110572!3d-0.07135373529573462!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x91d58b8a2862809f%3A0x92be664f4a6c2c51!2sV%C3%ADa%20al%20Zool%C3%B3gico%2C%20170209%20Quito!5e0!3m2!1ses!2sec!4v1781294975721!5m2!1ses!2sec" style="border:0;" allowfullscreen></iframe>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-7">
+                <div class="p-4 bg-light rounded shadow-sm border">
+                    <h4 class="fw-bold text-dark mb-4">Envíanos un Mensaje</h4>
+                    <form>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Nombre</label>
+                            <input type="text" class="form-control" placeholder="Alex Portero" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Correo</label>
+                            <input type="email" class="form-control" placeholder="alex@email.com" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Asunto</label>
+                            <input type="text" class="form-control" placeholder="Consulta" required>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Mensaje</label>
+                            <textarea class="form-control" rows="5" placeholder="Escribe aquí..." required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-info w-100 fw-bold text-uppercase py-2">
+                            Enviar Mensaje
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- HORARIOS -->
+<aside class="card shadow-sm border-0 my-4 container">
+    <div class="card-body">
+        <h4 class="fw-bold text-dark mb-3">Horarios de Atención</h4>
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item d-flex justify-content-between">
+                <span><strong>Lunes a Viernes:</strong></span> 09:00 AM - 06:30 PM
+            </li>
+            <li class="list-group-item d-flex justify-content-between">
+                <span><strong>Sábados:</strong></span> 10:00 AM - 04:00 PM
+            </li>
+            <li class="list-group-item d-flex justify-content-between">
+                <span><strong>Domingos:</strong></span> <span class="text-danger">Cerrado</span>
+            </li>
+        </ul>
+    </div>
+</aside>
+
+<!-- MODAL -->
+<div class="modal fade" id="modalDetalles" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Detalles del Pedido</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <p class="text-muted">Selecciona un pedido para ver detalles.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,95 @@
+h1 {
+    background-color: rgba(15, 13, 13, 0.973) !important;
+    color: lab(19.9% -16.8 13.91 / 0.801) !important;
+    font-size: 2.5em;
+    text-align: center;
+}
+h2 {
+    color: lab(10.54% 21.11 -38.41 / 0.801) !important;
+    font-size: 1.5em;
+    text-align: center;
+}
+h3 {
+    color: lab(27.25% 58.4 -82.4 / 0.801) !important;
+    font-size: 1.2em;
+    text-align: left;
+}   
+
+
+
+body {
+    background-color: lab(61.76% -1.44 -0.51 / 0.781) !important;
+    font-family: 'Times New Roman', Times, serif, sans-serif;
+    margin: 0;
+    padding: 0;
+    line-height: 1.6;
+    box-sizing: border-box;
+
+}
+
+/* Navegación */
+.navbar {
+    background-color: #000000 !important;
+}
+
+/* Estilo general para todos los enlaces */
+.mi-menu-personalizado .nav-link {
+    color: #ded2f1 !important;
+    font-weight: 500;
+}
+
+
+/* Estilo simple para la sección Inicio */
+#inicio {
+    background-color: #0b72d8;
+}
+/* style para el botón de la sección Inicio */
+.btn-guia-personalizado {
+    background-color: #156b50 !important;
+    color: #ffffff !important;
+    border-radius: 25px !important;
+    border: none !important;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1) !important;
+    transition: all 0.3s ease !important;
+}
+
+
+
+/* Tablas */
+/* Pantallas pequeñas (teléfonos) */
+@media (max-width: 600px) {
+ body {
+ background-color: rgb(200, 238, 202) !important;
+ font-size: 14px;
+ }
+}
+
+/* Pantallas medianas (tabletas) */
+@media (min-width: 601px) and (maxwidth: 1024px) {
+ body {
+ background-color: rgb(200, 238, 202)  !important;
+ font-size: 16px;
+ }
+}
+
+/* Pantallas grandes (escritorios) */
+@media (min-width: 1025px) {
+ body {
+ background-color: rgb(200, 238, 202) !important;
+ font-size: 18px;
+ }
+}
+
+
+/* Seccion del formulario REGISTRO DE PRODUCTOS  cambiar colores */
+.mi-fondo-personalizado {
+    background-color: #77ace9; /* Puedes cambiar este código por el color que prefieras */
+}
+/* Estilo para la caja del Total de pedidos Registarados  */
+.estilo-pedidos-personalizado {
+    background-color: #e7e988; /* Color de fondo */
+    color: #000000;            /* Color del texto (blanco) */
+    padding: 10px 20px;        /* Espaciado interno */
+    border-radius: 10px;       /* Bordes redondeados */
+    display: inline-block;     /* Para que la caja se ajuste al texto */
+}

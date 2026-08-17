@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}Facturación - Acuario Vaporeon{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h2 class="text-center mb-4">Facturación</h2>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>N° Factura</th>
+                <th>Cliente</th>
+                <th>Fecha</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td>001</td><td>Ana Martínez</td><td>2026-08-15</td><td>$150.00</td></tr>
+            <tr><td>002</td><td>Carlos López</td><td>2026-08-16</td><td>$230.00</td></tr>
+            <tr><td>003</td><td>María Gómez</td><td>2026-08-16</td><td>$85.00</td></tr>
+        </tbody>
+    </table>
+</div>
+{% endblock %}

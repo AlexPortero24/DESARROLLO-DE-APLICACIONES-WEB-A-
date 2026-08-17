@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Productos - Acuario Vaporeon{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h2 class="text-center mb-4">Gestión de Productos</h2>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Precio</th>
+                <th>Stock</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td>1</td><td>Pez Betta</td><td>$15.00</td><td>10</td></tr>
+            <tr><td>2</td><td>Pez Guppy</td><td>$8.00</td><td>25</td></tr>
+            <tr><td>3</td><td>Pez Goldfish</td><td>$12.00</td><td>8</td></tr>
+            <tr><td>4</td><td>Pez Molly</td><td>$10.00</td><td>15</td></tr>
+        </tbody>
+    </table>
+</div>
+{% endblock %}
