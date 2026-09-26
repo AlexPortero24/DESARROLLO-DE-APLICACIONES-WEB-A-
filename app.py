@@ -1,4 +1,7 @@
-from flask import Flask, render_template, redirect, url_for, flash, request
+import os
+import sqlite3
+
+from flask import Flask, render_template, redirect, url_for, flash
 
 # Importar formularios de la carpeta forms para la Semana 11
 from forms.cliente_form import ClienteForm
@@ -6,112 +9,130 @@ from forms.producto_form import ProductoForm
 from forms.proveedor_form import ProveedorForm
 from forms.facturacion_form import FacturacionForm
 
+
 app = Flask(__name__)
 
-# Configuración obligatoria de la SECRET_KEY para permitir la protección CSRF en los formularios
+
+# ==========================================================
+# CONFIGURACIÓN DE FLASK
+# ==========================================================
+
+# SECRET_KEY necesaria para Flask-WTF y protección CSRF
 app.config['SECRET_KEY'] = 'acuario_vaporeon_secret_key_2026'
 
-# Listas principales unificadas para el CRUD completo en todos los módulos
-lista_clientes = [
-    {
-        "id": 1,
-        "nombre": "Ana Martínez",
-        "email": "ana@email.com",
-        "telefono": "0987654321"
-    },
-    {
-        "id": 2,
-        "nombre": "Carlos López",
-        "email": "carlos@email.com",
-        "telefono": "0987123456"
-    },
-    {
-        "id": 3,
-        "nombre": "María Gómez",
-        "email": "maria@email.com",
-        "telefono": "0987567890"
-    }
-]
 
-lista_productos = [
-    {
-        "id": 1,
-        "nombre": "Pez Betta",
-        "precio": 15.00,
-        "stock": 10
-    },
-    {
-        "id": 2,
-        "nombre": "Pez Guppy",
-        "precio": 8.00,
-        "stock": 25
-    },
-    {
-        "id": 3,
-        "nombre": "Pez Goldfish",
-        "precio": 12.00,
-        "stock": 8
-    },
-    {
-        "id": 4,
-        "nombre": "Pez Molly",
-        "precio": 10.00,
-        "stock": 0
-    }
-]
+# ==========================================================
+# CONFIGURACIÓN DE LA BASE DE DATOS SQLITE
+# ==========================================================
 
-lista_proveedores = [
-    {
-        "id": 1,
-        "nombre": "Proveedor X",
-        "contacto": "Juan Pérez",
-        "telefono": "0987000111"
-    },
-    {
-        "id": 2,
-        "nombre": "Proveedor Y",
-        "contacto": "Luis Torres",
-        "telefono": "0987000222"
-    },
-    {
-        "id": 3,
-        "nombre": "Proveedor Z",
-        "contacto": "Elena Ruiz",
-        "telefono": "0987000333"
-    }
-]
+# Ruta principal del proyecto
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-lista_facturas = [
-    {
-        "id": 1,
-        "numero": "001",
-        "cliente": "Ana Martínez",
-        "fecha": "2026-08-15",
-        "total": 150.00
-    },
-    {
-        "id": 2,
-        "numero": "002",
-        "cliente": "Carlos López",
-        "fecha": "2026-08-16",
-        "total": 230.00
-    },
-    {
-        "id": 3,
-        "numero": "003",
-        "cliente": "María Gómez",
-        "fecha": "2026-08-16",
-        "total": 85.00
-    }
-]
+# Carpeta donde se almacenará la base de datos
+DATA_DIR = os.path.join(BASE_DIR, 'data')
+
+# Archivo de base de datos SQLite
+DATABASE = os.path.join(DATA_DIR, 'acuario_vaporeon.db')
+
+
+def get_db_connection():
+    """
+    Crea una conexión con la base de datos SQLite.
+    """
+
+    conn = sqlite3.connect(DATABASE)
+
+    # Permite acceder a las columnas por nombre
+    conn.row_factory = sqlite3.Row
+
+    return conn
+
+
+def init_db():
+    """
+    Crea la carpeta data y las tablas necesarias
+    si todavía no existen.
+    """
+
+    # Crear la carpeta data si no existe
+    os.makedirs(DATA_DIR, exist_ok=True)
+
+    # Abrir conexión
+    conn = get_db_connection()
+
+    # ======================================================
+    # TABLA PRODUCTOS
+    # ======================================================
+
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS productos (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nombre TEXT NOT NULL,
+            precio REAL NOT NULL,
+            stock INTEGER NOT NULL
+        )
+    """)
+
+    # ======================================================
+    # TABLA CLIENTES
+    # ======================================================
+
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS clientes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nombre TEXT NOT NULL,
+            email TEXT NOT NULL,
+            telefono TEXT NOT NULL
+        )
+    """)
+
+    # ======================================================
+    # TABLA PROVEEDORES
+    # ======================================================
+
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS proveedores (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nombre TEXT NOT NULL,
+            contacto TEXT NOT NULL,
+            telefono TEXT NOT NULL
+        )
+    """)
+
+    # ======================================================
+    # TABLA FACTURAS
+    # ======================================================
+
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS facturas (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            numero TEXT NOT NULL,
+            cliente TEXT NOT NULL,
+            fecha TEXT NOT NULL,
+            total REAL NOT NULL
+        )
+    """)
+
+    # Confirmar creación de las tablas
+    conn.commit()
+
+    # Cerrar conexión
+    conn.close()
+
+
+# Inicializar la base de datos
+init_db()
 
 
 # ==========================================================
 # PÁGINA DE INICIO
 # ==========================================================
+
 @app.route('/')
 def index():
+
     nombre_negocio = "Acuario Vaporeon"
+
     return render_template(
         'index.html',
         nombre_negocio=nombre_negocio
@@ -119,241 +140,606 @@ def index():
 
 
 # ==========================================================
-# MÓDULO DE PRODUCTOS (CRUD Completo)
+# MÓDULO DE PRODUCTOS
 # ==========================================================
+
 @app.route('/productos')
 def productos():
+
+    # Abrir conexión
+    conn = get_db_connection()
+
+    # Consultar productos
+    productos_db = conn.execute("""
+        SELECT id, nombre, precio, stock
+        FROM productos
+        ORDER BY id
+    """).fetchall()
+
+    # Cerrar conexión
+    conn.close()
+
     return render_template(
         'productos.html',
-        productos=lista_productos
+        productos=productos_db
     )
+
 
 @app.route('/productos/nuevo', methods=['GET', 'POST'])
 def nuevo_producto():
+
     form = ProductoForm()
+
+    # Validar formulario
     if form.validate_on_submit():
-        nuevo_id = max([p['id'] for p in lista_productos], default=0) + 1
-        producto = {
-            'id': nuevo_id,
-            'nombre': form.nombre.data,
-            'precio': form.precio.data,
-            'stock': form.stock.data
-        }
-        lista_productos.append(producto)
-        flash('¡Producto guardado y validado correctamente!', 'success')
+
+        conn = get_db_connection()
+
+        # Insertar producto
+        conn.execute("""
+            INSERT INTO productos (nombre, precio, stock)
+            VALUES (?, ?, ?)
+        """, (
+            form.nombre.data,
+            form.precio.data,
+            form.stock.data
+        ))
+
+        # Confirmar cambios
+        conn.commit()
+
+        # Cerrar conexión
+        conn.close()
+
+        flash(
+            '¡Producto guardado y validado correctamente!',
+            'success'
+        )
+
         return redirect(url_for('productos'))
 
-    return render_template('formulario_producto.html', form=form)
+    return render_template(
+        'formulario_producto.html',
+        form=form
+    )
+
 
 @app.route('/productos/editar/<int:id_producto>', methods=['GET', 'POST'])
 def editar_producto(id_producto):
-    producto_encontrado = None
-    for p in lista_productos:
-        if p['id'] == id_producto:
-            producto_encontrado = p
-            break
 
-    if not producto_encontrado:
-        flash('Producto no encontrado.', 'danger')
+    conn = get_db_connection()
+
+    # Buscar producto
+    producto = conn.execute("""
+        SELECT id, nombre, precio, stock
+        FROM productos
+        WHERE id = ?
+    """, (id_producto,)).fetchone()
+
+    conn.close()
+
+    # Comprobar si existe
+    if producto is None:
+
+        flash(
+            'Producto no encontrado.',
+            'danger'
+        )
+
         return redirect(url_for('productos'))
 
-    form = ProductoForm(data=producto_encontrado)
+    # Cargar datos en el formulario
+    form = ProductoForm(
+        data={
+            'nombre': producto['nombre'],
+            'precio': producto['precio'],
+            'stock': producto['stock']
+        }
+    )
 
+    # Validar formulario
     if form.validate_on_submit():
-        producto_encontrado['nombre'] = form.nombre.data
-        producto_encontrado['precio'] = form.precio.data
-        producto_encontrado['stock'] = form.stock.data
-        flash('¡Producto actualizado correctamente!', 'success')
+
+        conn = get_db_connection()
+
+        # Actualizar producto
+        conn.execute("""
+            UPDATE productos
+            SET nombre = ?, precio = ?, stock = ?
+            WHERE id = ?
+        """, (
+            form.nombre.data,
+            form.precio.data,
+            form.stock.data,
+            id_producto
+        ))
+
+        conn.commit()
+        conn.close()
+
+        flash(
+            '¡Producto actualizado correctamente!',
+            'success'
+        )
+
         return redirect(url_for('productos'))
 
-    return render_template('formulario_producto.html', form=form, editando=True)
+    return render_template(
+        'formulario_producto.html',
+        form=form,
+        editando=True
+    )
+
 
 @app.route('/productos/eliminar/<int:id_producto>')
 def eliminar_producto(id_producto):
-    global lista_productos
-    lista_productos = [p for p in lista_productos if p['id'] != id_producto]
-    flash('¡Producto eliminado correctamente!', 'danger')
+
+    conn = get_db_connection()
+
+    # Eliminar producto
+    conn.execute("""
+        DELETE FROM productos
+        WHERE id = ?
+    """, (id_producto,))
+
+    conn.commit()
+    conn.close()
+
+    flash(
+        '¡Producto eliminado correctamente!',
+        'danger'
+    )
+
     return redirect(url_for('productos'))
 
 
 # ==========================================================
-# MÓDULO DE CLIENTES (CRUD Completo)
+# MÓDULO DE CLIENTES
 # ==========================================================
+
 @app.route('/clientes')
 def clientes():
+
+    conn = get_db_connection()
+
+    # Consultar clientes
+    clientes_db = conn.execute("""
+        SELECT id, nombre, email, telefono
+        FROM clientes
+        ORDER BY id
+    """).fetchall()
+
+    conn.close()
+
     return render_template(
         'clientes.html',
-        clientes=lista_clientes
+        clientes=clientes_db
     )
+
 
 @app.route('/clientes/nuevo', methods=['GET', 'POST'])
 def nuevo_cliente():
+
     form = ClienteForm()
+
     if form.validate_on_submit():
-        nuevo_id = max([c['id'] for c in lista_clientes], default=0) + 1
-        cliente = {
-            'id': nuevo_id,
-            'nombre': form.nombre.data,
-            'email': form.email.data,
-            'telefono': form.telefono.data
-        }
-        lista_clientes.append(cliente)
-        flash('¡Cliente guardado y validado correctamente!', 'success')
+
+        conn = get_db_connection()
+
+        # Insertar cliente
+        conn.execute("""
+            INSERT INTO clientes (nombre, email, telefono)
+            VALUES (?, ?, ?)
+        """, (
+            form.nombre.data,
+            form.email.data,
+            form.telefono.data
+        ))
+
+        conn.commit()
+        conn.close()
+
+        flash(
+            '¡Cliente guardado y validado correctamente!',
+            'success'
+        )
+
         return redirect(url_for('clientes'))
 
-    return render_template('formulario_cliente.html', form=form)
+    return render_template(
+        'formulario_cliente.html',
+        form=form
+    )
+
 
 @app.route('/clientes/editar/<int:id_cliente>', methods=['GET', 'POST'])
 def editar_cliente(id_cliente):
-    cliente_encontrado = None
-    for c in lista_clientes:
-        if c['id'] == id_cliente:
-            cliente_encontrado = c
-            break
 
-    if not cliente_encontrado:
-        flash('Cliente no encontrado.', 'danger')
+    conn = get_db_connection()
+
+    # Buscar cliente
+    cliente = conn.execute("""
+        SELECT id, nombre, email, telefono
+        FROM clientes
+        WHERE id = ?
+    """, (id_cliente,)).fetchone()
+
+    conn.close()
+
+    # Comprobar si existe
+    if cliente is None:
+
+        flash(
+            'Cliente no encontrado.',
+            'danger'
+        )
+
         return redirect(url_for('clientes'))
 
-    form = ClienteForm(data=cliente_encontrado)
+    # Cargar datos actuales
+    form = ClienteForm(
+        data={
+            'nombre': cliente['nombre'],
+            'email': cliente['email'],
+            'telefono': cliente['telefono']
+        }
+    )
 
     if form.validate_on_submit():
-        cliente_encontrado['nombre'] = form.nombre.data
-        cliente_encontrado['email'] = form.email.data
-        cliente_encontrado['telefono'] = form.telefono.data
-        flash('¡Cliente actualizado correctamente!', 'success')
+
+        conn = get_db_connection()
+
+        # Actualizar cliente
+        conn.execute("""
+            UPDATE clientes
+            SET nombre = ?, email = ?, telefono = ?
+            WHERE id = ?
+        """, (
+            form.nombre.data,
+            form.email.data,
+            form.telefono.data,
+            id_cliente
+        ))
+
+        conn.commit()
+        conn.close()
+
+        flash(
+            '¡Cliente actualizado correctamente!',
+            'success'
+        )
+
         return redirect(url_for('clientes'))
 
-    return render_template('formulario_cliente.html', form=form, editando=True)
+    return render_template(
+        'formulario_cliente.html',
+        form=form,
+        editando=True
+    )
+
 
 @app.route('/clientes/eliminar/<int:id_cliente>')
 def eliminar_cliente(id_cliente):
-    global lista_clientes
-    lista_clientes = [c for c in lista_clientes if c['id'] != id_cliente]
-    flash('¡Cliente eliminado correctamente!', 'danger')
+
+    conn = get_db_connection()
+
+    # Eliminar cliente
+    conn.execute("""
+        DELETE FROM clientes
+        WHERE id = ?
+    """, (id_cliente,))
+
+    conn.commit()
+    conn.close()
+
+    flash(
+        '¡Cliente eliminado correctamente!',
+        'danger'
+    )
+
     return redirect(url_for('clientes'))
 
 
 # ==========================================================
-# MÓDULO DE PROVEEDORES (CRUD Completo)
+# MÓDULO DE PROVEEDORES
 # ==========================================================
+
 @app.route('/proveedores')
 def proveedores():
+
+    conn = get_db_connection()
+
+    # Consultar proveedores
+    proveedores_db = conn.execute("""
+        SELECT id, nombre, contacto, telefono
+        FROM proveedores
+        ORDER BY id
+    """).fetchall()
+
+    conn.close()
+
     return render_template(
         'proveedores.html',
-        proveedores=lista_proveedores
+        proveedores=proveedores_db
     )
+
 
 @app.route('/proveedores/nuevo', methods=['GET', 'POST'])
 def nuevo_proveedor():
+
     form = ProveedorForm()
+
     if form.validate_on_submit():
-        nuevo_id = max([p['id'] for p in lista_proveedores], default=0) + 1
-        proveedor = {
-            'id': nuevo_id,
-            'nombre': form.nombre.data,
-            'contacto': form.contacto.data,
-            'telefono': form.telefono.data
-        }
-        lista_proveedores.append(proveedor)
-        flash('¡Proveedor guardado y validado correctamente!', 'success')
+
+        conn = get_db_connection()
+
+        # Insertar proveedor
+        conn.execute("""
+            INSERT INTO proveedores (nombre, contacto, telefono)
+            VALUES (?, ?, ?)
+        """, (
+            form.nombre.data,
+            form.contacto.data,
+            form.telefono.data
+        ))
+
+        conn.commit()
+        conn.close()
+
+        flash(
+            '¡Proveedor guardado y validado correctamente!',
+            'success'
+        )
+
         return redirect(url_for('proveedores'))
 
-    return render_template('formulario_proveedor.html', form=form)
+    return render_template(
+        'formulario_proveedor.html',
+        form=form
+    )
+
 
 @app.route('/proveedores/editar/<int:id_proveedor>', methods=['GET', 'POST'])
 def editar_proveedor(id_proveedor):
-    proveedor_encontrado = None
-    for p in lista_proveedores:
-        if p['id'] == id_proveedor:
-            proveedor_encontrado = p
-            break
 
-    if not proveedor_encontrado:
-        flash('Proveedor no encontrado.', 'danger')
+    conn = get_db_connection()
+
+    # Buscar proveedor
+    proveedor = conn.execute("""
+        SELECT id, nombre, contacto, telefono
+        FROM proveedores
+        WHERE id = ?
+    """, (id_proveedor,)).fetchone()
+
+    conn.close()
+
+    # Comprobar si existe
+    if proveedor is None:
+
+        flash(
+            'Proveedor no encontrado.',
+            'danger'
+        )
+
         return redirect(url_for('proveedores'))
 
-    form = ProveedorForm(data=proveedor_encontrado)
+    # Cargar datos actuales
+    form = ProveedorForm(
+        data={
+            'nombre': proveedor['nombre'],
+            'contacto': proveedor['contacto'],
+            'telefono': proveedor['telefono']
+        }
+    )
 
     if form.validate_on_submit():
-        proveedor_encontrado['nombre'] = form.nombre.data
-        proveedor_encontrado['contacto'] = form.contacto.data
-        proveedor_encontrado['telefono'] = form.telefono.data
-        flash('¡Proveedor actualizado correctamente!', 'success')
+
+        conn = get_db_connection()
+
+        # Actualizar proveedor
+        conn.execute("""
+            UPDATE proveedores
+            SET nombre = ?, contacto = ?, telefono = ?
+            WHERE id = ?
+        """, (
+            form.nombre.data,
+            form.contacto.data,
+            form.telefono.data,
+            id_proveedor
+        ))
+
+        conn.commit()
+        conn.close()
+
+        flash(
+            '¡Proveedor actualizado correctamente!',
+            'success'
+        )
+
         return redirect(url_for('proveedores'))
 
-    return render_template('formulario_proveedor.html', form=form, editando=True)
+    return render_template(
+        'formulario_proveedor.html',
+        form=form,
+        editando=True
+    )
+
 
 @app.route('/proveedores/eliminar/<int:id_proveedor>')
 def eliminar_proveedor(id_proveedor):
-    global lista_proveedores
-    lista_proveedores = [p for p in lista_proveedores if p['id'] != id_proveedor]
-    flash('¡Proveedor eliminado correctamente!', 'danger')
+
+    conn = get_db_connection()
+
+    # Eliminar proveedor
+    conn.execute("""
+        DELETE FROM proveedores
+        WHERE id = ?
+    """, (id_proveedor,))
+
+    conn.commit()
+    conn.close()
+
+    flash(
+        '¡Proveedor eliminado correctamente!',
+        'danger'
+    )
+
     return redirect(url_for('proveedores'))
 
 
 # ==========================================================
-# MÓDULO DE FACTURACIÓN (CRUD Completo)
+# MÓDULO DE FACTURACIÓN
 # ==========================================================
+
 @app.route('/facturacion')
 def facturacion():
+
+    conn = get_db_connection()
+
+    # Consultar facturas
+    facturas_db = conn.execute("""
+        SELECT id, numero, cliente, fecha, total
+        FROM facturas
+        ORDER BY id
+    """).fetchall()
+
+    conn.close()
+
     return render_template(
         'facturacion.html',
-        facturas=lista_facturas
+        facturas=facturas_db
     )
+
 
 @app.route('/facturacion/nuevo', methods=['GET', 'POST'])
 def nueva_factura():
+
     form = FacturacionForm()
+
     if form.validate_on_submit():
-        nuevo_id = max([f['id'] for f in lista_facturas], default=0) + 1
-        factura = {
-            'id': nuevo_id,
-            'numero': form.numero.data,
-            'cliente': form.cliente.data,
-            'fecha': str(form.fecha.data),
-            'total': form.total.data
-        }
-        lista_facturas.append(factura)
-        flash('¡Factura guardada y validada correctamente!', 'success')
+
+        conn = get_db_connection()
+
+        # Insertar factura
+        conn.execute("""
+            INSERT INTO facturas (numero, cliente, fecha, total)
+            VALUES (?, ?, ?, ?)
+        """, (
+            form.numero.data,
+            form.cliente.data,
+            str(form.fecha.data),
+            form.total.data
+        ))
+
+        conn.commit()
+        conn.close()
+
+        flash(
+            '¡Factura guardada y validada correctamente!',
+            'success'
+        )
+
         return redirect(url_for('facturacion'))
 
-    return render_template('formulario_facturacion.html', form=form)
+    return render_template(
+        'formulario_facturacion.html',
+        form=form
+    )
+
 
 @app.route('/facturacion/editar/<int:id_factura>', methods=['GET', 'POST'])
 def editar_factura(id_factura):
-    factura_encontrada = None
-    for f in lista_facturas:
-        if f['id'] == id_factura:
-            factura_encontrada = f
-            break
 
-    if not factura_encontrada:
-        flash('Factura no encontrada.', 'danger')
+    conn = get_db_connection()
+
+    # Buscar factura
+    factura = conn.execute("""
+        SELECT id, numero, cliente, fecha, total
+        FROM facturas
+        WHERE id = ?
+    """, (id_factura,)).fetchone()
+
+    conn.close()
+
+    # Comprobar si existe
+    if factura is None:
+
+        flash(
+            'Factura no encontrada.',
+            'danger'
+        )
+
         return redirect(url_for('facturacion'))
 
-    form = FacturacionForm(data=factura_encontrada)
+    # Cargar datos actuales
+    form = FacturacionForm(
+        data={
+            'numero': factura['numero'],
+            'cliente': factura['cliente'],
+            'fecha': factura['fecha'],
+            'total': factura['total']
+        }
+    )
 
     if form.validate_on_submit():
-        factura_encontrada['numero'] = form.numero.data
-        factura_encontrada['cliente'] = form.cliente.data
-        factura_encontrada['fecha'] = str(form.fecha.data)
-        factura_encontrada['total'] = form.total.data
-        flash('¡Factura actualizada correctamente!', 'success')
+
+        conn = get_db_connection()
+
+        # Actualizar factura
+        conn.execute("""
+            UPDATE facturas
+            SET numero = ?, cliente = ?, fecha = ?, total = ?
+            WHERE id = ?
+        """, (
+            form.numero.data,
+            form.cliente.data,
+            str(form.fecha.data),
+            form.total.data,
+            id_factura
+        ))
+
+        conn.commit()
+        conn.close()
+
+        flash(
+            '¡Factura actualizada correctamente!',
+            'success'
+        )
+
         return redirect(url_for('facturacion'))
 
-    return render_template('formulario_facturacion.html', form=form, editando=True)
+    return render_template(
+        'formulario_facturacion.html',
+        form=form,
+        editando=True
+    )
+
 
 @app.route('/facturacion/eliminar/<int:id_factura>')
 def eliminar_factura(id_factura):
-    global lista_facturas
-    lista_facturas = [f for f in lista_facturas if f['id'] != id_factura]
-    flash('¡Factura eliminada correctamente!', 'danger')
+
+    conn = get_db_connection()
+
+    # Eliminar factura
+    conn.execute("""
+        DELETE FROM facturas
+        WHERE id = ?
+    """, (id_factura,))
+
+    conn.commit()
+    conn.close()
+
+    flash(
+        '¡Factura eliminada correctamente!',
+        'danger'
+    )
+
     return redirect(url_for('facturacion'))
 
 
 # ==========================================================
 # EJECUTAR APLICACIÓN
 # ==========================================================
+
 if __name__ == '__main__':
     app.run(debug=True)
