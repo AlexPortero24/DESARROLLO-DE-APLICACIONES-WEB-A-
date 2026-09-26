@@ -42,6 +42,12 @@
 
                     <td>{{ cliente.telefono }}</td>
 
+                    <!-- Botones de Editar y Eliminar dentro de cada fila -->
+                    <td>
+                        <a href="{{ url_for('editar_cliente', id_cliente=cliente.id) }}" class="btn btn-sm btn-warning">Editar</a>
+                        <a href="{{ url_for('eliminar_cliente', id_cliente=cliente.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('¿Estás seguro de eliminar este cliente?');">Eliminar</a>
+                    </td>
+
                 </tr>
 
                 {% endfor %}

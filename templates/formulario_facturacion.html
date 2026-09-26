@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Gestión de Facturación - Acuario Vaporeon</h4>
+                </div>
+                <div class="card-body">
+                    
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    <form method="POST" novalidate>
+                        {{ form.hidden_tag() }}
+
+                        <div class="mb-3">
+                            {{ form.numero.label(class="form-label fw-bold") }}
+                            {% if form.numero.errors %}
+                                {{ form.numero(class="form-control is-invalid") }}
+                                <div class="invalid-feedback">
+                                    {% for error in form.numero.errors %}
+                                        <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                {{ form.numero(class="form-control") }}
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.cliente.label(class="form-label fw-bold") }}
+                            {% if form.cliente.errors %}
+                                {{ form.cliente(class="form-control is-invalid") }}
+                                <div class="invalid-feedback">
+                                    {% for error in form.cliente.errors %}
+                                        <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                {{ form.cliente(class="form-control") }}
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.fecha.label(class="form-label fw-bold") }}
+                            {% if form.fecha.errors %}
+                                {{ form.fecha(class="form-control is-invalid") }}
+                                <div class="invalid-feedback">
+                                    {% for error in form.fecha.errors %}
+                                        <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                {{ form.fecha(class="form-control") }}
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.total.label(class="form-label fw-bold") }}
+                            {% if form.total.errors %}
+                                {{ form.total(class="form-control is-invalid") }}
+                                <div class="invalid-feedback">
+                                    {% for error in form.total.errors %}
+                                        <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                {{ form.total(class="form-control") }}
+                            {% endif %}
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            {{ form.submit(class="btn btn-success btn-lg") }}
+                            <a href="{{ url_for('facturacion') }}" class="btn btn-secondary">Ver Lista de Facturas</a>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

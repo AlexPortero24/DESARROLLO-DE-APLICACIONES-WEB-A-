@@ -63,6 +63,12 @@
 
                     </td>
 
+                    <!-- Botones de Editar y Eliminar dentro de cada fila -->
+                    <td>
+                        <a href="{{ url_for('editar_proveedor', id_proveedor=proveedor.id) }}" class="btn btn-sm btn-warning">Editar</a>
+                        <a href="{{ url_for('eliminar_proveedor', id_proveedor=proveedor.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('¿Estás seguro de eliminar este proveedor?');">Eliminar</a>
+                    </td>
+
                 </tr>
 
                 {% endfor %}
