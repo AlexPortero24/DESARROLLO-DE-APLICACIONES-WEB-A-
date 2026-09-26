@@ -3,22 +3,84 @@
 {% block title %}Proveedores - Acuario Vaporeon{% endblock %}
 
 {% block content %}
+
 <div class="container py-5">
-    <h2 class="text-center mb-4">Gestión de Proveedores</h2>
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Nombre</th>
-                <th>Contacto</th>
-                <th>Teléfono</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr><td>1</td><td>Proveedor X</td><td>Juan Pérez</td><td>0987000111</td></tr>
-            <tr><td>2</td><td>Proveedor Y</td><td>Luis Torres</td><td>0987000222</td></tr>
-            <tr><td>3</td><td>Proveedor Z</td><td>Elena Ruiz</td><td>0987000333</td></tr>
-        </tbody>
-    </table>
+
+    <h2 class="text-center mb-2">
+        Gestión de Proveedores
+    </h2>
+
+    <p class="text-center text-muted mb-4">
+        Proveedores registrados en el sistema
+    </p>
+
+    <div class="table-responsive">
+
+        <table class="table table-striped table-hover shadow-sm">
+
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Contacto</th>
+                    <th>Teléfono</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                <!-- Recorrer la lista de proveedores -->
+                {% for proveedor in proveedores %}
+
+                <tr>
+
+                    <td>{{ proveedor.id }}</td>
+
+                    <!-- Filtro Jinja upper -->
+                    <td>{{ proveedor.nombre | upper }}</td>
+
+                    <td>{{ proveedor.contacto }}</td>
+
+                    <td>{{ proveedor.telefono }}</td>
+
+                    <!-- Condicional Jinja -->
+                    <td>
+
+                        {% if proveedor.telefono %}
+
+                            <span class="badge bg-success">
+                                Registrado
+                            </span>
+
+                        {% else %}
+
+                            <span class="badge bg-warning text-dark">
+                                Sin contacto
+                            </span>
+
+                        {% endif %}
+
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+    <div class="alert alert-info mt-4">
+
+        Total de proveedores registrados:
+        <strong>{{ proveedores | length }}</strong>
+
+    </div>
+
 </div>
+
 {% endblock %}
+
