@@ -1,9 +1,9 @@
+import os
+import sqlite3
+
 from flask import Flask, render_template, redirect, url_for, flash
 
-# Importar conexión centralizada con MySQL
-from conexion.conexion import get_connection
-
-# Importar formularios de la carpeta forms
+# Importar formularios de la carpeta forms para la Semana 11
 from forms.cliente_form import ClienteForm
 from forms.producto_form import ProductoForm
 from forms.proveedor_form import ProveedorForm
@@ -19,6 +19,109 @@ app = Flask(__name__)
 
 # SECRET_KEY necesaria para Flask-WTF y protección CSRF
 app.config['SECRET_KEY'] = 'acuario_vaporeon_secret_key_2026'
+
+
+# ==========================================================
+# CONFIGURACIÓN DE LA BASE DE DATOS SQLITE
+# ==========================================================
+
+# Ruta principal del proyecto
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# Carpeta donde se almacenará la base de datos
+DATA_DIR = os.path.join(BASE_DIR, 'data')
+
+# Archivo de base de datos SQLite
+DATABASE = os.path.join(DATA_DIR, 'acuario_vaporeon.db')
+
+
+def get_db_connection():
+    """
+    Crea una conexión con la base de datos SQLite.
+    """
+
+    conn = sqlite3.connect(DATABASE)
+
+    # Permite acceder a las columnas por nombre
+    conn.row_factory = sqlite3.Row
+
+    return conn
+
+
+def init_db():
+    """
+    Crea la carpeta data y las tablas necesarias
+    si todavía no existen.
+    """
+
+    # Crear la carpeta data si no existe
+    os.makedirs(DATA_DIR, exist_ok=True)
+
+    # Abrir conexión
+    conn = get_db_connection()
+
+    # ======================================================
+    # TABLA PRODUCTOS
+    # ======================================================
+
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS productos (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nombre TEXT NOT NULL,
+            precio REAL NOT NULL,
+            stock INTEGER NOT NULL
+        )
+    """)
+
+    # ======================================================
+    # TABLA CLIENTES
+    # ======================================================
+
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS clientes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nombre TEXT NOT NULL,
+            email TEXT NOT NULL,
+            telefono TEXT NOT NULL
+        )
+    """)
+
+    # ======================================================
+    # TABLA PROVEEDORES
+    # ======================================================
+
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS proveedores (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nombre TEXT NOT NULL,
+            contacto TEXT NOT NULL,
+            telefono TEXT NOT NULL
+        )
+    """)
+
+    # ======================================================
+    # TABLA FACTURAS
+    # ======================================================
+
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS facturas (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            numero TEXT NOT NULL,
+            cliente TEXT NOT NULL,
+            fecha TEXT NOT NULL,
+            total REAL NOT NULL
+        )
+    """)
+
+    # Confirmar creación de las tablas
+    conn.commit()
+
+    # Cerrar conexión
+    conn.close()
+
+
+# Inicializar la base de datos
+init_db()
 
 
 # ==========================================================
@@ -43,30 +146,17 @@ def index():
 @app.route('/productos')
 def productos():
 
-    conn = get_connection()
+    # Abrir conexión
+    conn = get_db_connection()
 
-    if conn is None:
-        flash('No se pudo conectar con MySQL.', 'danger')
-        return redirect(url_for('index'))
+    # Consultar productos
+    productos_db = conn.execute("""
+        SELECT id, nombre, precio, stock
+        FROM productos
+        ORDER BY id
+    """).fetchall()
 
-    cursor = conn.cursor(dictionary=True)
-
-    # Consulta de productos relacionada con proveedores mediante JOIN
-    productos_db = cursor.execute("""
-        SELECT
-            p.id_producto AS id,
-            p.nombre,
-            p.precio,
-            p.stock,
-            p.id_proveedor,
-            COALESCE(pr.nombre, 'Sin proveedor') AS proveedor
-        FROM productos p
-        LEFT JOIN proveedores pr
-            ON p.id_proveedor = pr.id_proveedor
-        ORDER BY p.id_producto
-    """) or cursor.fetchall()
-
-    cursor.close()
+    # Cerrar conexión
     conn.close()
 
     return render_template(
@@ -83,21 +173,12 @@ def nuevo_producto():
     # Validar formulario
     if form.validate_on_submit():
 
-        conn = get_connection()
-
-        if conn is None:
-            flash('No se pudo conectar con MySQL.', 'danger')
-            return render_template(
-                'formulario_producto.html',
-                form=form
-            )
-
-        cursor = conn.cursor()
+        conn = get_db_connection()
 
         # Insertar producto
-        cursor.execute("""
+        conn.execute("""
             INSERT INTO productos (nombre, precio, stock)
-            VALUES (%s, %s, %s)
+            VALUES (?, ?, ?)
         """, (
             form.nombre.data,
             form.precio.data,
@@ -107,7 +188,7 @@ def nuevo_producto():
         # Confirmar cambios
         conn.commit()
 
-        cursor.close()
+        # Cerrar conexión
         conn.close()
 
         flash(
@@ -126,24 +207,15 @@ def nuevo_producto():
 @app.route('/productos/editar/<int:id_producto>', methods=['GET', 'POST'])
 def editar_producto(id_producto):
 
-    conn = get_connection()
-
-    if conn is None:
-        flash('No se pudo conectar con MySQL.', 'danger')
-        return redirect(url_for('productos'))
-
-    cursor = conn.cursor(dictionary=True)
+    conn = get_db_connection()
 
     # Buscar producto
-    cursor.execute("""
-        SELECT id_producto, nombre, precio, stock
+    producto = conn.execute("""
+        SELECT id, nombre, precio, stock
         FROM productos
-        WHERE id_producto = %s
-    """, (id_producto,))
+        WHERE id = ?
+    """, (id_producto,)).fetchone()
 
-    producto = cursor.fetchone()
-
-    cursor.close()
     conn.close()
 
     # Comprobar si existe
@@ -168,25 +240,13 @@ def editar_producto(id_producto):
     # Validar formulario
     if form.validate_on_submit():
 
-        conn = get_connection()
-
-        if conn is None:
-            flash('No se pudo conectar con MySQL.', 'danger')
-            return render_template(
-                'formulario_producto.html',
-                form=form,
-                editando=True
-            )
-
-        cursor = conn.cursor()
+        conn = get_db_connection()
 
         # Actualizar producto
-        cursor.execute("""
+        conn.execute("""
             UPDATE productos
-            SET nombre = %s,
-                precio = %s,
-                stock = %s
-            WHERE id_producto = %s
+            SET nombre = ?, precio = ?, stock = ?
+            WHERE id = ?
         """, (
             form.nombre.data,
             form.precio.data,
@@ -195,8 +255,6 @@ def editar_producto(id_producto):
         ))
 
         conn.commit()
-
-        cursor.close()
         conn.close()
 
         flash(
@@ -216,23 +274,15 @@ def editar_producto(id_producto):
 @app.route('/productos/eliminar/<int:id_producto>')
 def eliminar_producto(id_producto):
 
-    conn = get_connection()
+    conn = get_db_connection()
 
-    if conn is None:
-        flash('No se pudo conectar con MySQL.', 'danger')
-        return redirect(url_for('productos'))
-
-    cursor = conn.cursor()
-
-    # Eliminar producto usando WHERE
-    cursor.execute("""
+    # Eliminar producto
+    conn.execute("""
         DELETE FROM productos
-        WHERE id_producto = %s
+        WHERE id = ?
     """, (id_producto,))
 
     conn.commit()
-
-    cursor.close()
     conn.close()
 
     flash(
@@ -250,28 +300,15 @@ def eliminar_producto(id_producto):
 @app.route('/clientes')
 def clientes():
 
-    conn = get_connection()
-
-    if conn is None:
-        flash('No se pudo conectar con MySQL.', 'danger')
-        return redirect(url_for('index'))
-
-    cursor = conn.cursor(dictionary=True)
+    conn = get_db_connection()
 
     # Consultar clientes
-    cursor.execute("""
-        SELECT
-            id_cliente AS id,
-            nombre,
-            email,
-            telefono
+    clientes_db = conn.execute("""
+        SELECT id, nombre, email, telefono
         FROM clientes
-        ORDER BY id_cliente
-    """)
+        ORDER BY id
+    """).fetchall()
 
-    clientes_db = cursor.fetchall()
-
-    cursor.close()
     conn.close()
 
     return render_template(
@@ -287,21 +324,12 @@ def nuevo_cliente():
 
     if form.validate_on_submit():
 
-        conn = get_connection()
-
-        if conn is None:
-            flash('No se pudo conectar con MySQL.', 'danger')
-            return render_template(
-                'formulario_cliente.html',
-                form=form
-            )
-
-        cursor = conn.cursor()
+        conn = get_db_connection()
 
         # Insertar cliente
-        cursor.execute("""
+        conn.execute("""
             INSERT INTO clientes (nombre, email, telefono)
-            VALUES (%s, %s, %s)
+            VALUES (?, ?, ?)
         """, (
             form.nombre.data,
             form.email.data,
@@ -309,8 +337,6 @@ def nuevo_cliente():
         ))
 
         conn.commit()
-
-        cursor.close()
         conn.close()
 
         flash(
@@ -329,24 +355,15 @@ def nuevo_cliente():
 @app.route('/clientes/editar/<int:id_cliente>', methods=['GET', 'POST'])
 def editar_cliente(id_cliente):
 
-    conn = get_connection()
-
-    if conn is None:
-        flash('No se pudo conectar con MySQL.', 'danger')
-        return redirect(url_for('clientes'))
-
-    cursor = conn.cursor(dictionary=True)
+    conn = get_db_connection()
 
     # Buscar cliente
-    cursor.execute("""
-        SELECT id_cliente, nombre, email, telefono
+    cliente = conn.execute("""
+        SELECT id, nombre, email, telefono
         FROM clientes
-        WHERE id_cliente = %s
-    """, (id_cliente,))
+        WHERE id = ?
+    """, (id_cliente,)).fetchone()
 
-    cliente = cursor.fetchone()
-
-    cursor.close()
     conn.close()
 
     # Comprobar si existe
@@ -370,25 +387,13 @@ def editar_cliente(id_cliente):
 
     if form.validate_on_submit():
 
-        conn = get_connection()
-
-        if conn is None:
-            flash('No se pudo conectar con MySQL.', 'danger')
-            return render_template(
-                'formulario_cliente.html',
-                form=form,
-                editando=True
-            )
-
-        cursor = conn.cursor()
+        conn = get_db_connection()
 
         # Actualizar cliente
-        cursor.execute("""
+        conn.execute("""
             UPDATE clientes
-            SET nombre = %s,
-                email = %s,
-                telefono = %s
-            WHERE id_cliente = %s
+            SET nombre = ?, email = ?, telefono = ?
+            WHERE id = ?
         """, (
             form.nombre.data,
             form.email.data,
@@ -397,8 +402,6 @@ def editar_cliente(id_cliente):
         ))
 
         conn.commit()
-
-        cursor.close()
         conn.close()
 
         flash(
@@ -418,23 +421,15 @@ def editar_cliente(id_cliente):
 @app.route('/clientes/eliminar/<int:id_cliente>')
 def eliminar_cliente(id_cliente):
 
-    conn = get_connection()
+    conn = get_db_connection()
 
-    if conn is None:
-        flash('No se pudo conectar con MySQL.', 'danger')
-        return redirect(url_for('clientes'))
-
-    cursor = conn.cursor()
-
-    # Eliminar cliente usando WHERE
-    cursor.execute("""
+    # Eliminar cliente
+    conn.execute("""
         DELETE FROM clientes
-        WHERE id_cliente = %s
+        WHERE id = ?
     """, (id_cliente,))
 
     conn.commit()
-
-    cursor.close()
     conn.close()
 
     flash(
@@ -452,28 +447,15 @@ def eliminar_cliente(id_cliente):
 @app.route('/proveedores')
 def proveedores():
 
-    conn = get_connection()
-
-    if conn is None:
-        flash('No se pudo conectar con MySQL.', 'danger')
-        return redirect(url_for('index'))
-
-    cursor = conn.cursor(dictionary=True)
+    conn = get_db_connection()
 
     # Consultar proveedores
-    cursor.execute("""
-        SELECT
-            id_proveedor AS id,
-            nombre,
-            contacto,
-            telefono
+    proveedores_db = conn.execute("""
+        SELECT id, nombre, contacto, telefono
         FROM proveedores
-        ORDER BY id_proveedor
-    """)
+        ORDER BY id
+    """).fetchall()
 
-    proveedores_db = cursor.fetchall()
-
-    cursor.close()
     conn.close()
 
     return render_template(
@@ -489,21 +471,12 @@ def nuevo_proveedor():
 
     if form.validate_on_submit():
 
-        conn = get_connection()
-
-        if conn is None:
-            flash('No se pudo conectar con MySQL.', 'danger')
-            return render_template(
-                'formulario_proveedor.html',
-                form=form
-            )
-
-        cursor = conn.cursor()
+        conn = get_db_connection()
 
         # Insertar proveedor
-        cursor.execute("""
+        conn.execute("""
             INSERT INTO proveedores (nombre, contacto, telefono)
-            VALUES (%s, %s, %s)
+            VALUES (?, ?, ?)
         """, (
             form.nombre.data,
             form.contacto.data,
@@ -511,8 +484,6 @@ def nuevo_proveedor():
         ))
 
         conn.commit()
-
-        cursor.close()
         conn.close()
 
         flash(
@@ -531,24 +502,15 @@ def nuevo_proveedor():
 @app.route('/proveedores/editar/<int:id_proveedor>', methods=['GET', 'POST'])
 def editar_proveedor(id_proveedor):
 
-    conn = get_connection()
-
-    if conn is None:
-        flash('No se pudo conectar con MySQL.', 'danger')
-        return redirect(url_for('proveedores'))
-
-    cursor = conn.cursor(dictionary=True)
+    conn = get_db_connection()
 
     # Buscar proveedor
-    cursor.execute("""
-        SELECT id_proveedor, nombre, contacto, telefono
+    proveedor = conn.execute("""
+        SELECT id, nombre, contacto, telefono
         FROM proveedores
-        WHERE id_proveedor = %s
-    """, (id_proveedor,))
+        WHERE id = ?
+    """, (id_proveedor,)).fetchone()
 
-    proveedor = cursor.fetchone()
-
-    cursor.close()
     conn.close()
 
     # Comprobar si existe
@@ -572,25 +534,13 @@ def editar_proveedor(id_proveedor):
 
     if form.validate_on_submit():
 
-        conn = get_connection()
-
-        if conn is None:
-            flash('No se pudo conectar con MySQL.', 'danger')
-            return render_template(
-                'formulario_proveedor.html',
-                form=form,
-                editando=True
-            )
-
-        cursor = conn.cursor()
+        conn = get_db_connection()
 
         # Actualizar proveedor
-        cursor.execute("""
+        conn.execute("""
             UPDATE proveedores
-            SET nombre = %s,
-                contacto = %s,
-                telefono = %s
-            WHERE id_proveedor = %s
+            SET nombre = ?, contacto = ?, telefono = ?
+            WHERE id = ?
         """, (
             form.nombre.data,
             form.contacto.data,
@@ -599,8 +549,6 @@ def editar_proveedor(id_proveedor):
         ))
 
         conn.commit()
-
-        cursor.close()
         conn.close()
 
         flash(
@@ -620,23 +568,15 @@ def editar_proveedor(id_proveedor):
 @app.route('/proveedores/eliminar/<int:id_proveedor>')
 def eliminar_proveedor(id_proveedor):
 
-    conn = get_connection()
+    conn = get_db_connection()
 
-    if conn is None:
-        flash('No se pudo conectar con MySQL.', 'danger')
-        return redirect(url_for('proveedores'))
-
-    cursor = conn.cursor()
-
-    # Eliminar proveedor usando WHERE
-    cursor.execute("""
+    # Eliminar proveedor
+    conn.execute("""
         DELETE FROM proveedores
-        WHERE id_proveedor = %s
+        WHERE id = ?
     """, (id_proveedor,))
 
     conn.commit()
-
-    cursor.close()
     conn.close()
 
     flash(
@@ -654,29 +594,15 @@ def eliminar_proveedor(id_proveedor):
 @app.route('/facturacion')
 def facturacion():
 
-    conn = get_connection()
-
-    if conn is None:
-        flash('No se pudo conectar con MySQL.', 'danger')
-        return redirect(url_for('index'))
-
-    cursor = conn.cursor(dictionary=True)
+    conn = get_db_connection()
 
     # Consultar facturas
-    cursor.execute("""
-        SELECT
-            id_factura AS id,
-            numero,
-            cliente,
-            fecha,
-            total
+    facturas_db = conn.execute("""
+        SELECT id, numero, cliente, fecha, total
         FROM facturas
-        ORDER BY id_factura
-    """)
+        ORDER BY id
+    """).fetchall()
 
-    facturas_db = cursor.fetchall()
-
-    cursor.close()
     conn.close()
 
     return render_template(
@@ -692,21 +618,12 @@ def nueva_factura():
 
     if form.validate_on_submit():
 
-        conn = get_connection()
-
-        if conn is None:
-            flash('No se pudo conectar con MySQL.', 'danger')
-            return render_template(
-                'formulario_facturacion.html',
-                form=form
-            )
-
-        cursor = conn.cursor()
+        conn = get_db_connection()
 
         # Insertar factura
-        cursor.execute("""
+        conn.execute("""
             INSERT INTO facturas (numero, cliente, fecha, total)
-            VALUES (%s, %s, %s, %s)
+            VALUES (?, ?, ?, ?)
         """, (
             form.numero.data,
             form.cliente.data,
@@ -715,8 +632,6 @@ def nueva_factura():
         ))
 
         conn.commit()
-
-        cursor.close()
         conn.close()
 
         flash(
@@ -735,24 +650,15 @@ def nueva_factura():
 @app.route('/facturacion/editar/<int:id_factura>', methods=['GET', 'POST'])
 def editar_factura(id_factura):
 
-    conn = get_connection()
-
-    if conn is None:
-        flash('No se pudo conectar con MySQL.', 'danger')
-        return redirect(url_for('facturacion'))
-
-    cursor = conn.cursor(dictionary=True)
+    conn = get_db_connection()
 
     # Buscar factura
-    cursor.execute("""
-        SELECT id_factura, numero, cliente, fecha, total
+    factura = conn.execute("""
+        SELECT id, numero, cliente, fecha, total
         FROM facturas
-        WHERE id_factura = %s
-    """, (id_factura,))
+        WHERE id = ?
+    """, (id_factura,)).fetchone()
 
-    factura = cursor.fetchone()
-
-    cursor.close()
     conn.close()
 
     # Comprobar si existe
@@ -777,26 +683,13 @@ def editar_factura(id_factura):
 
     if form.validate_on_submit():
 
-        conn = get_connection()
-
-        if conn is None:
-            flash('No se pudo conectar con MySQL.', 'danger')
-            return render_template(
-                'formulario_facturacion.html',
-                form=form,
-                editando=True
-            )
-
-        cursor = conn.cursor()
+        conn = get_db_connection()
 
         # Actualizar factura
-        cursor.execute("""
+        conn.execute("""
             UPDATE facturas
-            SET numero = %s,
-                cliente = %s,
-                fecha = %s,
-                total = %s
-            WHERE id_factura = %s
+            SET numero = ?, cliente = ?, fecha = ?, total = ?
+            WHERE id = ?
         """, (
             form.numero.data,
             form.cliente.data,
@@ -806,8 +699,6 @@ def editar_factura(id_factura):
         ))
 
         conn.commit()
-
-        cursor.close()
         conn.close()
 
         flash(
@@ -827,23 +718,15 @@ def editar_factura(id_factura):
 @app.route('/facturacion/eliminar/<int:id_factura>')
 def eliminar_factura(id_factura):
 
-    conn = get_connection()
+    conn = get_db_connection()
 
-    if conn is None:
-        flash('No se pudo conectar con MySQL.', 'danger')
-        return redirect(url_for('facturacion'))
-
-    cursor = conn.cursor()
-
-    # Eliminar factura usando WHERE
-    cursor.execute("""
+    # Eliminar factura
+    conn.execute("""
         DELETE FROM facturas
-        WHERE id_factura = %s
+        WHERE id = ?
     """, (id_factura,))
 
     conn.commit()
-
-    cursor.close()
     conn.close()
 
     flash(

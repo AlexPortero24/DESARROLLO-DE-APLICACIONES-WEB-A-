@@ -6,104 +6,119 @@
 
 <div class="container py-5">
 
-    <!-- Título dinámico utilizando una variable enviada desde Flask -->
-    <h2 class="text-center mb-2">
-        {{ nombre_negocio | upper }}
-    </h2>
+```
+<!-- Título dinámico utilizando una variable enviada desde Flask -->
+<h2 class="text-center mb-2">
+    {{ nombre_negocio | upper }}
+</h2>
 
-    <p class="text-center text-muted mb-4">
-        Catálogo de productos disponibles
-    </p>
+<p class="text-center text-muted mb-4">
+    Catálogo de productos disponibles
+</p>
 
-    <div class="table-responsive">
-        <table class="table table-striped table-hover shadow-sm">
+<div class="table-responsive">
+    <table class="table table-striped table-hover shadow-sm">
 
-            <thead class="table-dark">
-                <tr>
-                    <th>ID</th>
-                    <th>Nombre</th>
-                    <th>Precio</th>
-                    <th>Stock</th>
-                    <th>Estado</th>
-                </tr>
-            </thead>
+        <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Precio</th>
+                <th>Stock</th>
+                <th>Proveedor</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
 
-            <tbody>
+        <tbody>
+
+            <!--
+                JINJA2 - CICLO FOR
+
+                Recorre la lista de productos enviada
+                desde app.py y genera una fila por cada producto.
+            -->
+            {% for producto in productos %}
+
+            <tr>
+
+                <!-- Mostrar información del diccionario -->
+                <td>{{ producto.id }}</td>
+
+                <td>{{ producto.nombre }}</td>
+
+                <td>${{ "%.2f"|format(producto.precio) }}</td>
+
+                <td>{{ producto.stock }}</td>
+
+                <!-- Proveedor obtenido mediante la consulta JOIN -->
+                <td>{{ producto.proveedor }}</td>
 
                 <!--
-                    JINJA2 - CICLO FOR
+                    JINJA2 - CONDICIONAL IF / ELSE
 
-                    Recorre la lista de productos enviada
-                    desde app.py y genera una fila por cada producto.
+                    Si el stock es mayor que cero,
+                    el producto está disponible.
+                    Si es cero, aparece como agotado.
                 -->
-                {% for producto in productos %}
+                <td>
 
-                <tr>
+                    {% if producto.stock > 0 %}
 
-                    <!-- Mostrar información del diccionario -->
-                    <td>{{ producto.id }}</td>
+                        <span class="badge bg-success">
+                            Disponible
+                        </span>
 
-                    <td>{{ producto.nombre }}</td>
+                    {% else %}
 
-                    <td>${{ "%.2f"|format(producto.precio) }}</td>
+                        <span class="badge bg-danger">
+                            Agotado
+                        </span>
 
-                    <td>{{ producto.stock }}</td>
+                    {% endif %}
 
-                    <!--
-                        JINJA2 - CONDICIONAL IF / ELSE
+                </td>
 
-                        Si el stock es mayor que cero,
-                        el producto está disponible.
-                        Si es cero, aparece como agotado.
-                    -->
-                    <td>
+                <!-- Botones de Editar y Eliminar -->
+                <td>
+                    <a href="{{ url_for('editar_producto', id_producto=producto.id) }}"
+                       class="btn btn-sm btn-warning">
+                        Editar
+                    </a>
 
-                        {% if producto.stock > 0 %}
+                    <a href="{{ url_for('eliminar_producto', id_producto=producto.id) }}"
+                       class="btn btn-sm btn-danger"
+                       onclick="return confirm('¿Estás seguro de eliminar este producto?');">
+                        Eliminar
+                    </a>
+                </td>
 
-                            <span class="badge bg-success">
-                                Disponible
-                            </span>
+            </tr>
 
-                        {% else %}
+            {% endfor %}
 
-                            <span class="badge bg-danger">
-                                Agotado
-                            </span>
+        </tbody>
 
-                        {% endif %}
+    </table>
+</div>
 
-                    </td>
+<!-- Información adicional -->
+<div class="mt-4 p-4 bg-light rounded shadow-sm">
 
-                    <!-- Botones de Editar y Eliminar dentro de cada fila -->
-                    <td>
-                        <a href="{{ url_for('editar_producto', id_producto=producto.id) }}" class="btn btn-sm btn-warning">Editar</a>
-                        <a href="{{ url_for('eliminar_producto', id_producto=producto.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('¿Estás seguro de eliminar este producto?');">Eliminar</a>
-                    </td>
+    <h4 class="fw-bold">
+        Información del catálogo
+    </h4>
 
-                </tr>
+    <p class="mb-0">
+        Actualmente se muestran
+        <strong>{{ productos | length }}</strong>
+        productos registrados en el catálogo de
+        <strong>{{ "Acuario Vaporeon" | upper }}</strong>.
+    </p>
 
-                {% endfor %}
-
-            </tbody>
-
-        </table>
-    </div>
-
-    <!-- Información adicional -->
-    <div class="mt-4 p-4 bg-light rounded shadow-sm">
-
-        <h4 class="fw-bold">
-            Información del catálogo
-        </h4>
-
-        <p class="mb-0">
-            Actualmente se muestran
-            <strong>{{ productos | length }}</strong>
-            productos registrados en el catálogo de
-            <strong>{{ "Acuario Vaporeon" | upper }}</strong>.
-        </p>
-
-    </div>
+</div>
+```
 
 </div>
 
