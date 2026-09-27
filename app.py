@@ -1,16 +1,45 @@
-from flask import Flask, render_template, redirect, url_for, flash
+from flask import Flask, render_template, redirect, url_for, flash, request
 
 # Importar conexión centralizada con MySQL
 from conexion.conexion import get_connection
+
+# Importar seguridad de contraseñas
+from werkzeug.security import generate_password_hash, check_password_hash
+
+# Importar Flask-Login
+from flask_login import (
+    LoginManager,
+    login_user,
+    logout_user,
+    login_required,
+    current_user
+)
+
+# Importar modelo de usuario
+from models import Usuario
 
 # Importar formularios de la carpeta forms
 from forms.cliente_form import ClienteForm
 from forms.producto_form import ProductoForm
 from forms.proveedor_form import ProveedorForm
 from forms.facturacion_form import FacturacionForm
+from forms.usuario_form import UsuarioForm
+from forms.login_form import LoginForm
 
 
 app = Flask(__name__)
+
+
+# ==========================================================
+# CONFIGURACIÓN DE FLASK-LOGIN
+# ==========================================================
+
+login_manager = LoginManager()
+login_manager.init_app(app)
+
+# Ruta a la que se enviará al usuario si intenta
+# acceder a una página protegida sin iniciar sesión
+login_manager.login_view = 'login'
 
 
 # ==========================================================
@@ -19,6 +48,214 @@ app = Flask(__name__)
 
 # SECRET_KEY necesaria para Flask-WTF y protección CSRF
 app.config['SECRET_KEY'] = 'acuario_vaporeon_secret_key_2026'
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+
+
+# ==========================================================
+# CARGAR USUARIO DE FLASK-LOGIN
+# ==========================================================
+
+@login_manager.user_loader
+def load_user(user_id):
+
+    conn = get_connection()
+
+    if conn is None:
+        return None
+
+    cursor = conn.cursor(dictionary=True)
+
+    # Buscar usuario por su identificador
+    cursor.execute("""
+        SELECT id, usuario
+        FROM usuarios
+        WHERE id = %s
+    """, (user_id,))
+
+    usuario_db = cursor.fetchone()
+
+    cursor.close()
+    conn.close()
+
+    if usuario_db:
+        return Usuario(
+            usuario_db['id'],
+            usuario_db['usuario']
+        )
+
+    return None
+
+# ==========================================================
+# USUARIO AUTENTICADO DISPONIBLE EN LAS PLANTILLAS
+# ==========================================================
+
+@app.context_processor
+def inyectar_usuario():
+
+    return {
+        'usuario_actual': current_user
+    }
+    
+# ==========================================================
+# REGISTRO DE USUARIOS
+# ==========================================================
+
+@app.route('/registro', methods=['GET', 'POST'])
+def registro():
+
+    form = UsuarioForm()
+
+    if form.validate_on_submit():
+
+        conn = get_connection()
+
+        if conn is None:
+            flash('No se pudo conectar con MySQL.', 'danger')
+            return render_template(
+                'registro.html',
+                form=form
+            )
+
+        cursor = conn.cursor(dictionary=True)
+
+        # Comprobar si el usuario ya existe
+        cursor.execute("""
+            SELECT id
+            FROM usuarios
+            WHERE usuario = %s
+        """, (
+            form.usuario.data,
+        ))
+
+        usuario_existente = cursor.fetchone()
+
+        if usuario_existente:
+
+            cursor.close()
+            conn.close()
+
+            flash(
+                'El usuario ya existe.',
+                'danger'
+            )
+
+            return render_template(
+                'registro.html',
+                form=form
+            )
+
+        # Generar hash seguro para la contraseña
+        password_hash = generate_password_hash(
+            form.password.data
+        )
+
+        # Registrar usuario
+        cursor.execute("""
+            INSERT INTO usuarios (usuario, password)
+            VALUES (%s, %s)
+        """, (
+            form.usuario.data,
+            password_hash
+        ))
+
+        conn.commit()
+
+        cursor.close()
+        conn.close()
+
+        flash(
+            '¡Usuario registrado correctamente!',
+            'success'
+        )
+
+        return redirect(url_for('login'))
+
+    return render_template(
+        'registro.html',
+        form=form
+    )
+
+
+# ==========================================================
+# INICIO DE SESIÓN
+# ==========================================================
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    form = LoginForm()
+
+    if form.validate_on_submit():
+
+        usuario = form.usuario.data
+        password = form.password.data
+
+        conn = get_connection()
+
+        if conn is None:
+            flash('No se pudo conectar con MySQL.', 'danger')
+            return render_template('login.html', form=form)
+
+        cursor = conn.cursor(dictionary=True)
+
+        cursor.execute("""
+            SELECT id, usuario, password
+            FROM usuarios
+            WHERE usuario = %s
+        """, (usuario,))
+
+        usuario_db = cursor.fetchone()
+
+        if usuario_db and check_password_hash(
+            usuario_db['password'],
+            password
+        ):
+
+            usuario_obj = Usuario(
+                usuario_db['id'],
+                usuario_db['usuario']
+            )
+
+            login_user(usuario_obj)
+
+            cursor.execute("""
+                INSERT INTO sesiones (usuario_id)
+                VALUES (%s)
+            """, (usuario_db['id'],))
+
+            conn.commit()
+
+            cursor.close()
+            conn.close()
+
+            flash('¡Inicio de sesión exitoso!', 'success')
+
+            return redirect(url_for('index'))
+
+        cursor.close()
+        conn.close()
+
+        flash('Usuario o contraseña incorrectos.', 'danger')
+
+    return render_template('login.html', form=form)
+
+
+# ==========================================================
+# CERRAR SESIÓN
+# ==========================================================
+
+@app.route('/logout')
+@login_required
+def logout():
+
+    logout_user()
+
+    flash(
+        'Sesión cerrada correctamente.',
+        'success'
+    )
+
+    return redirect(url_for('login'))
 
 
 # ==========================================================
@@ -41,6 +278,7 @@ def index():
 # ==========================================================
 
 @app.route('/productos')
+@login_required
 def productos():
 
     conn = get_connection()
@@ -76,11 +314,11 @@ def productos():
 
 
 @app.route('/productos/nuevo', methods=['GET', 'POST'])
+@login_required
 def nuevo_producto():
 
     form = ProductoForm()
 
-    # Validar formulario
     if form.validate_on_submit():
 
         conn = get_connection()
@@ -104,7 +342,6 @@ def nuevo_producto():
             form.stock.data
         ))
 
-        # Confirmar cambios
         conn.commit()
 
         cursor.close()
@@ -124,6 +361,7 @@ def nuevo_producto():
 
 
 @app.route('/productos/editar/<int:id_producto>', methods=['GET', 'POST'])
+@login_required
 def editar_producto(id_producto):
 
     conn = get_connection()
@@ -146,7 +384,6 @@ def editar_producto(id_producto):
     cursor.close()
     conn.close()
 
-    # Comprobar si existe
     if producto is None:
 
         flash(
@@ -165,7 +402,6 @@ def editar_producto(id_producto):
         }
     )
 
-    # Validar formulario
     if form.validate_on_submit():
 
         conn = get_connection()
@@ -214,6 +450,7 @@ def editar_producto(id_producto):
 
 
 @app.route('/productos/eliminar/<int:id_producto>')
+@login_required
 def eliminar_producto(id_producto):
 
     conn = get_connection()
@@ -248,6 +485,7 @@ def eliminar_producto(id_producto):
 # ==========================================================
 
 @app.route('/clientes')
+@login_required
 def clientes():
 
     conn = get_connection()
@@ -281,6 +519,7 @@ def clientes():
 
 
 @app.route('/clientes/nuevo', methods=['GET', 'POST'])
+@login_required
 def nuevo_cliente():
 
     form = ClienteForm()
@@ -327,6 +566,7 @@ def nuevo_cliente():
 
 
 @app.route('/clientes/editar/<int:id_cliente>', methods=['GET', 'POST'])
+@login_required
 def editar_cliente(id_cliente):
 
     conn = get_connection()
@@ -349,7 +589,6 @@ def editar_cliente(id_cliente):
     cursor.close()
     conn.close()
 
-    # Comprobar si existe
     if cliente is None:
 
         flash(
@@ -416,6 +655,7 @@ def editar_cliente(id_cliente):
 
 
 @app.route('/clientes/eliminar/<int:id_cliente>')
+@login_required
 def eliminar_cliente(id_cliente):
 
     conn = get_connection()
@@ -450,6 +690,7 @@ def eliminar_cliente(id_cliente):
 # ==========================================================
 
 @app.route('/proveedores')
+@login_required
 def proveedores():
 
     conn = get_connection()
@@ -483,6 +724,7 @@ def proveedores():
 
 
 @app.route('/proveedores/nuevo', methods=['GET', 'POST'])
+@login_required
 def nuevo_proveedor():
 
     form = ProveedorForm()
@@ -529,6 +771,7 @@ def nuevo_proveedor():
 
 
 @app.route('/proveedores/editar/<int:id_proveedor>', methods=['GET', 'POST'])
+@login_required
 def editar_proveedor(id_proveedor):
 
     conn = get_connection()
@@ -551,7 +794,6 @@ def editar_proveedor(id_proveedor):
     cursor.close()
     conn.close()
 
-    # Comprobar si existe
     if proveedor is None:
 
         flash(
@@ -618,6 +860,7 @@ def editar_proveedor(id_proveedor):
 
 
 @app.route('/proveedores/eliminar/<int:id_proveedor>')
+@login_required
 def eliminar_proveedor(id_proveedor):
 
     conn = get_connection()
@@ -652,6 +895,7 @@ def eliminar_proveedor(id_proveedor):
 # ==========================================================
 
 @app.route('/facturacion')
+@login_required
 def facturacion():
 
     conn = get_connection()
@@ -686,6 +930,7 @@ def facturacion():
 
 
 @app.route('/facturacion/nuevo', methods=['GET', 'POST'])
+@login_required
 def nueva_factura():
 
     form = FacturacionForm()
@@ -733,6 +978,7 @@ def nueva_factura():
 
 
 @app.route('/facturacion/editar/<int:id_factura>', methods=['GET', 'POST'])
+@login_required
 def editar_factura(id_factura):
 
     conn = get_connection()
@@ -755,7 +1001,6 @@ def editar_factura(id_factura):
     cursor.close()
     conn.close()
 
-    # Comprobar si existe
     if factura is None:
 
         flash(
@@ -825,6 +1070,7 @@ def editar_factura(id_factura):
 
 
 @app.route('/facturacion/eliminar/<int:id_factura>')
+@login_required
 def eliminar_factura(id_factura):
 
     conn = get_connection()
@@ -859,4 +1105,4 @@ def eliminar_factura(id_factura):
 # ==========================================================
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=False)

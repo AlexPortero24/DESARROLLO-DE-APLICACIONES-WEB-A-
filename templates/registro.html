@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Registro - Acuario Vaporeon</title>
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+</head>
+
+<body class="bg-light">
+
+    <div class="container d-flex justify-content-center align-items-center min-vh-100">
+
+        <div class="card shadow p-4" style="width: 400px;">
+
+            <div class="text-center mb-4">
+                <h1 class="fw-bold">Acuario Vaporeon</h1>
+                <p class="text-muted">Crear una cuenta</p>
+            </div>
+
+            <form method="POST" action="{{ url_for('registro') }}">
+
+                {{ form.hidden_tag() }}
+
+                <div class="mb-3">
+                    {{ form.usuario.label(class="form-label") }}
+
+                    {{ form.usuario(
+                        class="form-control",
+                        placeholder="Ingrese su usuario"
+                    ) }}
+
+                    {% for error in form.usuario.errors %}
+                        <div class="text-danger small mt-1">
+                            {{ error }}
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.password.label(class="form-label") }}
+
+                    {{ form.password(
+                        class="form-control",
+                        placeholder="Ingrese su contraseña"
+                    ) }}
+
+                    {% for error in form.password.errors %}
+                        <div class="text-danger small mt-1">
+                            {{ error }}
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.confirmar_password.label(class="form-label") }}
+
+                    {{ form.confirmar_password(
+                        class="form-control",
+                        placeholder="Confirme su contraseña"
+                    ) }}
+
+                    {% for error in form.confirmar_password.errors %}
+                        <div class="text-danger small mt-1">
+                            {{ error }}
+                        </div>
+                    {% endfor %}
+                </div>
+
+                {{ form.submit(class="btn btn-primary w-100") }}
+
+            </form>
+
+            <div class="text-center mt-3">
+                <a href="{{ url_for('login') }}">
+                    ¿Ya tienes una cuenta? Inicia sesión
+                </a>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script
+        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js">
+    </script>
+
+</body>
+</html>
