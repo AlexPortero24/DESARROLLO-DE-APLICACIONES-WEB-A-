@@ -6,94 +6,114 @@
 
 <div class="container py-5">
 
-    <h2 class="text-center mb-2">
-        Gestión de Facturación
-    </h2>
+```
+<h2 class="text-center mb-2">
+    Gestión de Facturación
+</h2>
 
-    <p class="text-center text-muted mb-4">
-        Registro de facturas del sistema
-    </p>
+<p class="text-center text-muted mb-4">
+    Registro de facturas del sistema
+</p>
 
-    <div class="table-responsive">
+<!-- Botón para registrar una nueva factura -->
+<div class="d-flex justify-content-end mb-3">
+    <a href="{{ url_for('nueva_factura') }}"
+       class="btn btn-primary">
+        + Nueva factura
+    </a>
+</div>
 
-        <table class="table table-striped table-hover shadow-sm">
+<div class="table-responsive">
 
-            <thead class="table-dark">
-                <tr>
-                    <th>N° Factura</th>
-                    <th>Cliente</th>
-                    <th>Fecha</th>
-                    <th>Total</th>
-                    <th>Estado</th>
-                </tr>
-            </thead>
+    <table class="table table-striped table-hover shadow-sm">
 
-            <tbody>
+        <thead class="table-dark">
+            <tr>
+                <th>N° Factura</th>
+                <th>Cliente</th>
+                <th>Fecha</th>
+                <th>Total</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
 
-                <!-- Recorrer la lista de facturas -->
-                {% for factura in facturas %}
+        <tbody>
 
-                <tr>
+            <!-- Recorrer la lista de facturas -->
+            {% for factura in facturas %}
 
-                    <td>
-                        {{ factura.numero }}
-                    </td>
+            <tr>
 
-                    <td>
-                        {{ factura.cliente }}
-                    </td>
+                <td>
+                    {{ factura.numero }}
+                </td>
 
-                    <td>
-                        {{ factura.fecha }}
-                    </td>
+                <td>
+                    {{ factura.cliente }}
+                </td>
 
-                    <!-- Formatear el valor como precio -->
-                    <td>
-                        ${{ "%.2f"|format(factura.total) }}
-                    </td>
+                <td>
+                    {{ factura.fecha }}
+                </td>
 
-                    <!-- Condicional según el total -->
-                    <td>
+                <td>
+                    ${{ "%.2f"|format(factura.total) }}
+                </td>
 
-                        {% if factura.total > 0 %}
+                <!-- Condicional según el total -->
+                <td>
 
-                            <span class="badge bg-success">
-                                Registrada
-                            </span>
+                    {% if factura.total > 0 %}
 
-                        {% else %}
+                        <span class="badge bg-success">
+                            Registrada
+                        </span>
 
-                            <span class="badge bg-danger">
-                                Pendiente
-                            </span>
+                    {% else %}
 
-                        {% endif %}
+                        <span class="badge bg-danger">
+                            Pendiente
+                        </span>
 
-                    </td>
+                    {% endif %}
 
-                    <!-- Botones de Editar y Eliminar dentro de cada fila -->
-                    <td>
-                        <a href="{{ url_for('editar_factura', id_factura=factura.id) }}" class="btn btn-sm btn-warning">Editar</a>
-                        <a href="{{ url_for('eliminar_factura', id_factura=factura.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('¿Estás seguro de eliminar esta factura?');">Eliminar</a>
-                    </td>
+                </td>
 
-                </tr>
+                <!-- Botones de Editar y Eliminar -->
+                <td>
 
-                {% endfor %}
+                    <a href="{{ url_for('editar_factura', id_factura=factura.id) }}"
+                       class="btn btn-sm btn-warning">
+                        Editar
+                    </a>
 
-            </tbody>
+                    <a href="{{ url_for('eliminar_factura', id_factura=factura.id) }}"
+                       class="btn btn-sm btn-danger"
+                       onclick="return confirm('¿Estás seguro de eliminar esta factura?');">
+                        Eliminar
+                    </a>
 
-        </table>
+                </td>
 
-    </div>
+            </tr>
 
-    <!-- Información dinámica -->
-    <div class="alert alert-info mt-4">
+            {% endfor %}
 
-        Total de facturas registradas:
-        <strong>{{ facturas | length }}</strong>
+        </tbody>
 
-    </div>
+    </table>
+
+</div>
+
+<!-- Información dinámica -->
+<div class="alert alert-info mt-4">
+
+    Total de facturas registradas:
+    <strong>{{ facturas | length }}</strong>
+
+</div>
+```
 
 </div>
 

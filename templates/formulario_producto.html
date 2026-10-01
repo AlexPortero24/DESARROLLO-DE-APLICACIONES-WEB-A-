@@ -1,3 +1,4 @@
+```html
 {% extends "base.html" %}
 
 {% block content %}
@@ -8,15 +9,21 @@
                 <div class="card-header bg-primary text-white">
                     <h4 class="mb-0">Gestión de Producto - Acuario Vaporeon</h4>
                 </div>
+
                 <div class="card-body">
-                    
+
                     <!-- Mensajes Flash -->
                     {% with messages = get_flashed_messages(with_categories=true) %}
                         {% if messages %}
                             {% for category, message in messages %}
-                                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
                                     {{ message }}
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                    <button
+                                        type="button"
+                                        class="btn-close"
+                                        data-bs-dismiss="alert"
+                                        aria-label="Close">
+                                    </button>
                                 </div>
                             {% endfor %}
                         {% endif %}
@@ -24,13 +31,17 @@
 
                     <!-- Formulario con Flask-WTF -->
                     <form method="POST" novalidate>
+
                         <!-- Token CSRF obligatorio -->
                         {{ form.hidden_tag() }}
 
+                        <!-- Nombre -->
                         <div class="mb-3">
                             {{ form.nombre.label(class="form-label fw-bold") }}
+
                             {% if form.nombre.errors %}
                                 {{ form.nombre(class="form-control is-invalid") }}
+
                                 <div class="invalid-feedback">
                                     {% for error in form.nombre.errors %}
                                         <span>{{ error }}</span>
@@ -41,10 +52,13 @@
                             {% endif %}
                         </div>
 
+                        <!-- Precio -->
                         <div class="mb-3">
                             {{ form.precio.label(class="form-label fw-bold") }}
+
                             {% if form.precio.errors %}
                                 {{ form.precio(class="form-control is-invalid") }}
+
                                 <div class="invalid-feedback">
                                     {% for error in form.precio.errors %}
                                         <span>{{ error }}</span>
@@ -55,10 +69,13 @@
                             {% endif %}
                         </div>
 
+                        <!-- Stock -->
                         <div class="mb-3">
                             {{ form.stock.label(class="form-label fw-bold") }}
+
                             {% if form.stock.errors %}
                                 {{ form.stock(class="form-control is-invalid") }}
+
                                 <div class="invalid-feedback">
                                     {% for error in form.stock.errors %}
                                         <span>{{ error }}</span>
@@ -69,10 +86,34 @@
                             {% endif %}
                         </div>
 
+                        <!-- Proveedor -->
+                        <div class="mb-3">
+                            {{ form.id_proveedor.label(class="form-label fw-bold") }}
+
+                            {% if form.id_proveedor.errors %}
+                                {{ form.id_proveedor(class="form-select is-invalid") }}
+
+                                <div class="invalid-feedback">
+                                    {% for error in form.id_proveedor.errors %}
+                                        <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                {{ form.id_proveedor(class="form-select") }}
+                            {% endif %}
+                        </div>
+
+                        <!-- Botones -->
                         <div class="d-grid gap-2">
                             {{ form.submit(class="btn btn-success btn-lg") }}
-                            <a href="{{ url_for('productos') }}" class="btn btn-secondary">Ver Lista de Productos</a>
+
+                            <a
+                                href="{{ url_for('productos') }}"
+                                class="btn btn-secondary">
+                                Ver Lista de Productos
+                            </a>
                         </div>
+
                     </form>
 
                 </div>
@@ -81,3 +122,4 @@
     </div>
 </div>
 {% endblock %}
+```

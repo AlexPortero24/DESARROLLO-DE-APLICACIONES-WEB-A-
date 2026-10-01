@@ -16,6 +16,14 @@
     Catálogo de productos disponibles
 </p>
 
+<!-- Botón para registrar un nuevo producto -->
+<div class="d-flex justify-content-end mb-3">
+    <a href="{{ url_for('nuevo_producto') }}"
+       class="btn btn-primary">
+        + Nuevo producto
+    </a>
+</div>
+
 <div class="table-responsive">
     <table class="table table-striped table-hover shadow-sm">
 
